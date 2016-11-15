@@ -75,6 +75,7 @@ var Node = function(parent, x, y)
     this.collides = true;
     this.x = x;
     this.y = y;
+    this.cost = 0;
 }
 
 
@@ -165,6 +166,7 @@ var aStarSearch = function(hunter, target)
             if(openList.indexOf(node) === -1 && closedList.indexOf(node) === -1)
             {
                 node.parent = currentNode;
+                node.cost = currentNode.cost + 1;
                 openList.push(node);
 
                 if(aStarGlow)
@@ -176,12 +178,12 @@ var aStarSearch = function(hunter, target)
             }
             else if(openList.indexOf(node) !== -1)
             {
-                var parentDist = f(node.parent, startNode, node);
-                var currentNodeDist = f(currentNode, startNode, node);
+                var costFromCurrentNode = currentNode.cost + 1;
       
-                if(currentNodeDist < parentDist)
+                if(costFromCurrentNode < node.cost)
                 {
                     node.parent = currentNode;
+                    node.cost = costFromCurrentNode;
                 }
             }
         });
