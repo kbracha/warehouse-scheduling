@@ -2,9 +2,6 @@ var n = Tile; //undefined;
 var w = Wall;
 var s = Shelf;
 
-console.log(n);
-console.log(w);
-
 
 var warehouseScheme = [
     [w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w],

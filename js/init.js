@@ -7,8 +7,9 @@ $(document).ready(function()
     
     //var warehouse = new Warehouse();
     var robot = new Robot();
-    var item = new Item();
 
+
+/*
     for(var i = 0; i < 750; i++)
     {
         var testItem = new Obstacle();
@@ -17,29 +18,60 @@ $(document).ready(function()
 
         manager.add(testItem);
     }
+*/
 
     buildWarehouse(warehouseScheme, manager);
 
-
-    item.x = 39; // randInt(0,49);
-    item.y = 46; // randInt(0,49);
-
     robot.x = 12;
     robot.y = 9;
+    
+    // for testing aStar
+    // var item = new Item();
+    // item.x = 39; // randInt(0,49);
+    // item.y = 46; // randInt(0,49);
+    // manager.add(item);
+
+    // for testing travelling salesman
+    var shelveVertices = []
+    for(var i = 0; i < manager.objects.length; i++)
+    {
+      var obj = manager.objects[i];
+
+      if(obj instanceof Shelf)
+      {
+          shelveVertices.push(obj);
+      }
+    }
+    
+    var items = [];
+    var robotInit = { x: robot.x, y: robot.y}
+    items.push(robotInit);
+    
+    for(var i = 0; i < 10; i++)
+    {
+        var randIndex = randInt(0, shelveVertices.length - 1);
+        var randshelf = shelveVertices.splice(randIndex, 1)[0];
+    
+        var item = new Item();
+        item.x = randshelf.x; 
+        item.y = randshelf.y; 
+        
+        items.push(item);
+        manager.add(item);
+    }
+    
+
 
     //manager.add(warehouse);
-    manager.add(item);
+    
     manager.add(robot);
- 
-
-    console.log(item);
-    console.log(robot);
     
 
     $("#simulation").focus();
 
     var node;
-
+    var order;
+    var orderIndex;
     $("#simulation").bind("keydown", function(e)
     {
         if(e.keyCode === 37) // left arrow
@@ -73,29 +105,18 @@ $(document).ready(function()
         }
         else if(e.keyCode === 68) // d
         {
-            node = aStarSearch(robot, item);
+            aStarGlow = true;
+            node = aStarSearch(robot, item).node;
 
             if(node !== null)
             {
-                alert("Path found");
+                //alert("Path found");
             }
             else
             {
-                alert("Path not found");
+                //alert("Path not found");
                 return;
             }
-
-            node.child = null;
-
-            while(node.parent != null)
-            {
-                var parent = node.parent;
-                parent.child = node;
-                node = parent;
-            }
-
-            node = node.child;
-            console.log(node);
         }
         else if(e.keyCode === 70) // f
         {
@@ -108,6 +129,34 @@ $(document).ready(function()
                 robot.move(node.x, node.y);
                 node = node.child;
             }
+        }
+        else if(e.keyCode === 81) // q
+        {
+            item = items[order[orderIndex]];
+            console.log("going for item index: " + order[orderIndex]);
+            console.log(item);
+            orderIndex++;
+        }
+        else if(e.keyCode === 87) // w
+        {
+            /*
+            var vertices = [{x: 5, y: 10}, {x: 123, y: 43}, {x: 14, y: 15}, {x: 200, y: 300}]
+
+            var matrix = tspConstructDistancesMatrix(vertices);
+            console.log(matrix);
+
+            var lb = tspCalculateTwiceTheLowerBound(matrix);
+            console.log(lb);
+            */
+
+            order = tspBranchAndBoundYT(items);
+            console.log(order);
+
+            // move robot to the end
+            order.splice(0,1);
+            order.push(0);
+
+            orderIndex = 0;
         }
     });
 });
