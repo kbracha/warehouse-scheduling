@@ -207,19 +207,19 @@ var aStarSearch = function(hunter, target)
 }
 
 
-var g = function(node, startNode)
+var g = function(node)
 {
-    return chessboardDistance(node, startNode);
+    return node.cost;
 }
 
 var h = function(node, target)
 {
-    return chessboardDistance(node, target);
+    return euclidianDistance(node, target);
 }
 
-var f = function(node, startNode, target)
+var f = function(node, target)
 {
-    return g(node, startNode) + h(node, target); 
+    return g(node) + h(node, target); 
 }
 
 var findLowestScore = function(list, startNode, target)
@@ -229,7 +229,7 @@ var findLowestScore = function(list, startNode, target)
 
     for(var i = 0; i < list.length; i++)
     {
-        var score = f(list[i], startNode, target);
+        var score = f(list[i], target);
         
         if(score < lowestScore)
         {
