@@ -46,3 +46,31 @@ Obj.prototype.canMoveArray = function(positions)
 
     return allowedPositions;
 }
+
+
+function extend(Child, Parent) 
+{
+    var p = Parent.prototype;
+    var c = Child.prototype;
+
+    for (var i in p) 
+    {
+        c[i] = p[i];
+    }
+
+    c.uber = p;
+}
+
+/*
+function Child() {
+Parent.apply(this,
+arguments);
+}
+extend2(Child,
+Parent);
+*/
+
+
+
+
+

@@ -1,13 +1,14 @@
 
 var manager;
+var items = [];
+var robot = new Robot();
+var robotInit;
 
 $(document).ready(function()
 {
     manager = new Manager($("#simulation"));
     
     //var warehouse = new Warehouse();
-    var robot = new Robot();
-
 
 /*
     for(var i = 0; i < 750; i++)
@@ -26,10 +27,10 @@ $(document).ready(function()
     robot.y = 9;
     
     // for testing aStar
-    // var item = new Item();
-    // item.x = 39; // randInt(0,49);
-    // item.y = 46; // randInt(0,49);
-    // manager.add(item);
+   // var item = new Item();
+   // item.x = 39; // randInt(0,49);
+   // item.y = 46; // randInt(0,49);
+   // manager.add(item);
 
     // for testing travelling salesman
     var shelveVertices = []
@@ -43,8 +44,8 @@ $(document).ready(function()
       }
     }
     
-    var items = [];
-    var robotInit = { x: robot.x, y: robot.y}
+
+    robotInit = { x: robot.x, y: robot.y}
     items.push(robotInit);
     
     for(var i = 0; i < 10; i++)
@@ -66,9 +67,65 @@ $(document).ready(function()
     
     manager.add(robot);
     
-
     $("#simulation").focus();
 
+    prepare();
+    requestAnimationFrame(simulate);
+});
+
+var node = null;
+var order;
+var orderIndex;
+
+var prepare = function()
+{
+    var job = new CollectItemsJob(items);
+    robot.addJob(job);
+    //order = tspBranchAndBoundYT(robot, items);
+    // move robot to the end
+    //order.push(robotInit);
+    //orderIndex = 0;
+}
+
+var frames = 0;
+var simulate = function() 
+{
+    frames++;
+    if(frames == 10)
+    {
+        frames = 0;
+
+        if(!robot.makeAction())
+        {
+            return;
+        }
+
+        //if(node == null)
+        //{
+        //    if(orderIndex == order.length)
+        //    {
+        //        console.log("completed");
+        //        return;
+        //    }
+//
+        //    item = order[orderIndex];
+        //    orderIndex++;   
+//
+        //    aStarGlow = true;
+        //    node = aStarSearch(robot, item).node;
+        //}
+//
+        //robot.move(node.x, node.y);
+        //node = node.child;
+    }
+
+    requestAnimationFrame(simulate);
+}
+
+
+
+var bind = function()
+{
     var node;
     var order;
     var orderIndex;
@@ -159,6 +216,6 @@ $(document).ready(function()
             orderIndex = 0;
         }
     });
-});
+}
 
 

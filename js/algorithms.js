@@ -260,7 +260,7 @@ function createArray(length) {
 // example 3: https://www.math.ku.edu/~jmartin/courses/math105-F11/Lectures/chapter6-part3.pdf
 //
 // when no need to come back: hamiltionian path
-var tspBranchAndBoundYT = function(vertices)
+var tspBranchAndBoundYT = function(robot, items)
 {
     //vertices = new Array(5);
     //var distancesMatrix = 
@@ -292,6 +292,8 @@ var tspBranchAndBoundYT = function(vertices)
     //    [40, 67, 71, 92, 45, Number.MAX_VALUE]
     //];
 
+    var vertices = items.slice();
+    vertices.unshift(robot);
     var distancesMatrix = tspConstructDistancesMatrix(vertices);
 
     var results = [];
@@ -325,12 +327,13 @@ var tspBranchAndBoundYT = function(vertices)
         if(bestResult.verticesVisited.length == vertices.length - 1)
         {
             //console.log(results);
-            console.log(bestResult);
-            console.log(tspCalculatePathCost(distancesMatrix, bestResult.verticesVisited))
+            //console.log(bestResult);
+            //console.log(tspCalculatePathCost(distancesMatrix, bestResult.verticesVisited))
             log = true;
-            console.log(tspCalculateLowerBound(distancesMatrix, bestResult.verticesVisited))        
-            alert("found best res")
+            //console.log(tspCalculateLowerBound(distancesMatrix, bestResult.verticesVisited))        
+            //alert("found best res")
 
+            // push the last remaining vertice
             for(var i = 0; i < vertices.length; i++)
             {
                 if(bestResult.verticesVisited.indexOf(i) === -1)
@@ -339,7 +342,14 @@ var tspBranchAndBoundYT = function(vertices)
                 }
             }
 
-            return bestResult.verticesVisited;
+            var itemsSorted = [];
+            // j = 1, skip the robot
+            for(var j = 1; j < bestResult.verticesVisited.length; j++)
+            {
+                itemsSorted.push(vertices[bestResult.verticesVisited[j]]);
+            }
+
+            return itemsSorted;
         }
 
         var verticesUnvisited = []
@@ -351,7 +361,7 @@ var tspBranchAndBoundYT = function(vertices)
             }
         }
 
-        console.log(bestResult);
+        //console.log(bestResult);
 
         for(var i = 0; i < verticesUnvisited.length; i++)
         {
