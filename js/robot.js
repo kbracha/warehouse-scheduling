@@ -5,9 +5,10 @@ var Robot = function()
 
     this.collides = true;
     this.zIndex = 3;
-    //this.canvas = $.parseHTML("<div></div>")
     this.jobQueue = [];
     this.currentJob = null;
+
+    this.returnedHome = false;
 }
 
 
@@ -26,6 +27,10 @@ Robot.prototype.addJob = function(job)
     }
 } 
 
+Robot.prototype.addJob2 = function(job)
+{
+    this.jobQueue.push(job);
+} 
 
 Robot.prototype.makeAction = function()
 {
@@ -56,5 +61,35 @@ Robot.prototype.makeAction = function()
     robot.move(this.currentJob.node.x, this.currentJob.node.y);
     this.currentJob.node = this.currentJob.node.child;
     
+    return true;
+}
+
+
+Robot.prototype.makeAction2 = function()
+{
+    if(this.jobQueue.length == 0)
+    {
+        return false;
+    }
+
+    var job = this.jobQueue[0];
+
+    if(job.started == false)
+    {
+        if(!job.init(this))
+        {
+            return false;
+        }
+    }
+
+    var step = job.nextStep();
+    this.move(step.x, step.y);
+
+    if(job.completed == true)
+    {
+        this.jobQueue.splice(0, 1);
+        manager.remove(job.target);
+    }
+
     return true;
 }

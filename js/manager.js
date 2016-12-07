@@ -23,6 +23,11 @@ Manager.prototype.add = function(object)
     }
 }
 
+Manager.prototype.remove = function(object)
+{
+    $(object.canvas).remove()
+}
+
 Manager.prototype.draw = function(object)
 {
     $(object.canvas).css({

@@ -1,8 +1,13 @@
 
 var manager;
-var items = [];
-var robot = new Robot();
+
 var robotInit;
+var running = false;
+
+var shelveVertices = []
+
+var robotsCount = 5;
+var itemsPerRobotCount = 3;
 
 $(document).ready(function()
 {
@@ -20,11 +25,8 @@ $(document).ready(function()
         manager.add(testItem);
     }
 */
-
     buildWarehouse(warehouseScheme, manager);
 
-    robot.x = 12;
-    robot.y = 9;
     
     // for testing aStar
    // var item = new Item();
@@ -33,7 +35,6 @@ $(document).ready(function()
    // manager.add(item);
 
     // for testing travelling salesman
-    var shelveVertices = []
     for(var i = 0; i < manager.objects.length; i++)
     {
       var obj = manager.objects[i];
@@ -43,12 +44,90 @@ $(document).ready(function()
           shelveVertices.push(obj);
       }
     }
-    
 
-    robotInit = { x: robot.x, y: robot.y}
-    items.push(robotInit);
+    //manager.add(warehouse);
+
     
-    for(var i = 0; i < 10; i++)
+    $("#simulation").focus();
+    bindButtons();
+
+    for(var x = 7; x < 7 + robotsCount; x++)
+    {
+        prepare(x);
+    }
+    
+    requestAnimationFrame(simulate);
+});
+
+var node = null;
+var order;
+var orderIndex;
+var robot;
+var robots = []
+
+var prepare = function(x)
+{
+    var items = createItems(itemsPerRobotCount);
+    var robot = new Robot();
+    robot.x = x;
+    robot.y = 9;
+    manager.add(robot);
+    robots.push(robot);
+
+    //robot.addJob(new CollectItemsJob(items));
+    var robotLocation = 
+    {
+        x : robot.x,
+        y : robot.y - 1
+    }
+
+    var itemsOrdered = tspBranchAndBoundYT(robotLocation, items);
+
+   for(var i = 0; i < itemsOrdered.length; i++)
+   {
+       robot.addJob2(new GoToDestinationJob(itemsOrdered[i]))
+   }
+
+    robot.addJob2(new GoToDestinationJob(robotLocation))
+
+    //robot.addJob(new GoToLocationJob(items));
+}
+
+var frames = 0;
+var simulate = function() 
+{
+    if(running)
+    {
+        frames++;
+        if(frames == 10)
+        {
+            frames = 0;
+
+            //if(!robot.makeAction())
+            var stillWorking = false;
+
+            for(var i = 0; i < robots.length; i ++)
+            {
+                if(robots[i].makeAction2())
+                {
+                    stillWorking = true;
+                }
+            }
+
+            if(stillWorking == false)
+                return;
+        }
+    }
+
+    requestAnimationFrame(simulate);
+}
+
+
+var createItems = function(count)
+{
+    var items = []
+
+    for(var i = 0; i < count; i++)
     {
         var randIndex = randInt(0, shelveVertices.length - 1);
         var randshelf = shelveVertices.splice(randIndex, 1)[0];
@@ -60,68 +139,9 @@ $(document).ready(function()
         items.push(item);
         manager.add(item);
     }
-    
 
-
-    //manager.add(warehouse);
-    
-    manager.add(robot);
-    
-    $("#simulation").focus();
-
-    prepare();
-    requestAnimationFrame(simulate);
-});
-
-var node = null;
-var order;
-var orderIndex;
-
-var prepare = function()
-{
-    var job = new CollectItemsJob(items);
-    robot.addJob(job);
-    //order = tspBranchAndBoundYT(robot, items);
-    // move robot to the end
-    //order.push(robotInit);
-    //orderIndex = 0;
+    return items;
 }
-
-var frames = 0;
-var simulate = function() 
-{
-    frames++;
-    if(frames == 10)
-    {
-        frames = 0;
-
-        if(!robot.makeAction())
-        {
-            return;
-        }
-
-        //if(node == null)
-        //{
-        //    if(orderIndex == order.length)
-        //    {
-        //        console.log("completed");
-        //        return;
-        //    }
-//
-        //    item = order[orderIndex];
-        //    orderIndex++;   
-//
-        //    aStarGlow = true;
-        //    node = aStarSearch(robot, item).node;
-        //}
-//
-        //robot.move(node.x, node.y);
-        //node = node.child;
-    }
-
-    requestAnimationFrame(simulate);
-}
-
 
 
 var bind = function()
@@ -218,4 +238,17 @@ var bind = function()
     });
 }
 
+
+var bindButtons = function()
+{
+    $("#btnRun").click(function(e)
+    {
+        running = true;
+    });
+
+    $("#btnPause").click(function(e)
+    {
+        running = false;
+    });
+}
 

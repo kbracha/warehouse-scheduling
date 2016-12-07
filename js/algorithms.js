@@ -458,7 +458,7 @@ var tspCalculateLowerBound = function(matrix, verticesVisited)
 
         if(log)
         {
-            console.log("i: " + i + ", j: " + logj + ", min: " + min + ", len: " + matrixCopy.length);
+            // console.log("i: " + i + ", j: " + logj + ", min: " + min + ", len: " + matrixCopy.length);
         }
 
         lowerBound += min;
