@@ -15,7 +15,7 @@ var CollectItemsJob = function(items)
 CollectItemsJob.prototype.init = function(robotPos)
 {
     this.currentIndex = 0;
-    this.itemsOrdered = tspBranchAndBoundYT(robotPos, this.items);
+    this.itemsOrdered = tspBranchAndBound(robotPos, this.items);
 }
 
 CollectItemsJob.prototype.getCurrentItem = function()
@@ -61,7 +61,7 @@ GoToDestinationJob.prototype.init = function(startLocation)
 
 GoToDestinationJob.prototype.createPath = function(startLocation)
 {
-    this.node = aStarSearch(startLocation, this.target).node
+    this.node = aStarSearchTo(startLocation, this.target).node
 }
 
 GoToDestinationJob.prototype.nextStep = function()
@@ -79,4 +79,16 @@ GoToDestinationJob.prototype.nextStep = function()
     }
     
     return node;
+}
+
+GoNextToDestinationJob = function() 
+{
+    GoToDestinationJob.apply(this, arguments);
+}
+
+extend(GoNextToDestinationJob, GoToDestinationJob);
+
+GoNextToDestinationJob.prototype.createPath = function(startLocation)
+{
+    this.node = aStarSearchNextTo(startLocation, this.target).node
 }

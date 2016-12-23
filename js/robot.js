@@ -55,7 +55,7 @@ Robot.prototype.makeAction = function()
             return false;
         }
 
-        this.currentJob.node = aStarSearch(this, this.currentJob.getCurrentItem()).node;
+        this.currentJob.node = aStarSearchTo(this, this.currentJob.getCurrentItem()).node;
     }
 
     robot.move(this.currentJob.node.x, this.currentJob.node.y);
@@ -92,4 +92,10 @@ Robot.prototype.makeAction2 = function()
     }
 
     return true;
+}
+
+
+Robot.prototype.resolveJob = function(job)
+{
+
 }

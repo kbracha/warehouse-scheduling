@@ -47,6 +47,10 @@ Obj.prototype.canMoveArray = function(positions)
     return allowedPositions;
 }
 
+Obj.prototype.getClass = function()
+{
+    return this.constructor.name;
+}
 
 function extend(Child, Parent) 
 {
