@@ -6,8 +6,8 @@ var Manager = function(canvas)
     this.worldWidth = 50;
     this.worldHeight = 50;
 
-    this.scaleX = 10;
-    this.scaleY = 10;
+    this.scaleX = 20;
+    this.scaleY = 20;
 
     this.canvas = canvas;
 }
@@ -30,23 +30,43 @@ Manager.prototype.remove = function(object)
 
 Manager.prototype.draw = function(object)
 {
+    console.log(object.offX);
+
     $(object.canvas).css({
         display: "block",
         position: "absolute",
         width: object.width * this.scaleX,
         height: object.height * this.scaleY,
-        left: object.x * this.scaleX,
-        top: (this.worldHeight - object.y - object.height) * this.scaleY,
+        left: (object.x + object.offX) * this.scaleX,
+        top: (this.worldHeight - (object.y + object.offY) - object.height) * this.scaleY,
         border: 0,
         "background-color": object.background,
         "z-index": object.zIndex
     });
 }
 
-Manager.prototype.placeAt = function(object, x, y)
+Manager.prototype.placeAt = function(object, x, y, offX, offY)
 {
     object.x = x;
     object.y = y;
+    
+    if(offX != undefined)
+    {
+        object.offX = offX;
+    }
+    else
+    {
+        object.offX = 0;
+    }
+
+    if(offY != undefined)
+    {
+        object.offY = offY;
+    }
+    else
+    {
+        object.offY = 0;
+    }
 
     this.draw(object);
 }

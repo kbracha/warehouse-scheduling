@@ -9,6 +9,9 @@ var Robot = function()
     this.currentJob = null;
 
     this.returnedHome = false;
+
+    this.background = "transparent";
+    this.setSpritePath('img/robot')
 }
 
 
@@ -67,12 +70,26 @@ Robot.prototype.makeAction = function()
 
 Robot.prototype.makeAction2 = function()
 {
+    if(this.isMoving == true)
+    {
+        this.continueMove();
+        return true;
+    }
+
     if(this.jobQueue.length == 0)
     {
         return false;
     }
 
     var job = this.jobQueue[0];
+
+    if(job.completed == true)
+    {
+        this.jobQueue.splice(0, 1);
+        manager.remove(job.target);
+
+        return true;
+    }
 
     if(job.started == false)
     {
@@ -84,12 +101,6 @@ Robot.prototype.makeAction2 = function()
 
     var step = job.nextStep();
     this.move(step.x, step.y);
-
-    if(job.completed == true)
-    {
-        this.jobQueue.splice(0, 1);
-        manager.remove(job.target);
-    }
 
     return true;
 }

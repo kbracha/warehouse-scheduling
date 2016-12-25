@@ -76,13 +76,13 @@ var prepare = function(x)
 
 var prepare2 = function()
 {
-    var items = createItems(6);
+    var items = createItems(3);
 
     for(var i = 0; i < 3; i++)
     {
         var robot = new Robot();
-        robot.x = 12 + i;
-        robot.y = 9;
+        robot.x = 23 + i;
+        robot.y = 33;
 
         manager.add(robot);
         robots.push(robot);
