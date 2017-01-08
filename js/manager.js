@@ -6,8 +6,8 @@ var Manager = function(canvas)
     this.worldWidth = 50;
     this.worldHeight = 50;
 
-    this.scaleX = 20;
-    this.scaleY = 20;
+    this.scaleX = 10;
+    this.scaleY = 10;
 
     this.canvas = canvas;
 }
@@ -28,10 +28,28 @@ Manager.prototype.remove = function(object)
     $(object.canvas).remove()
 }
 
+Manager.prototype.setScale = function(scale)
+{
+    this.scaleX = scale;
+    this.scaleY = scale;    
+    this.redraw();
+}
+
+Manager.prototype.getScaleX = function()
+{
+    return this.scaleX;
+}
+
+Manager.prototype.redraw = function()
+{
+    for(var i = 0; i < this.objects.length; i++)
+    {
+        this.draw(this.objects[i]);
+    }
+}
+
 Manager.prototype.draw = function(object)
 {
-    console.log(object.offX);
-
     $(object.canvas).css({
         display: "block",
         position: "absolute",
@@ -91,7 +109,6 @@ Manager.prototype.canPlaceAt = function(object, x, y)
 
     return true;
 }
-
 
 Manager.prototype.getObjectAt = function(classType, x, y)
 {   

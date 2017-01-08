@@ -5,12 +5,32 @@
     <title>title</title>
 </head>
 <body>
-<div id="simulation" style="width: 500px; height: 500px; top: 50px; position: absolute;" tabindex="1" >
 
+<div id="simulation" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; overflow: scroll;" tabindex="1" >
 </div>
-<div id="buttons" style="position: absolute; left: 600px;">
-<button id="btnRun">Run</button>`
+<div id="buttons" style="position: fixed; top: 0; right: 0; padding: 10px; background-color: white; z-index: 100;">
+<button id="btnRun">Run</button>
 <button id="btnPause">Pause</button>
+<button id="btnReset">Reset</button>
+Speed:
+<select id="selSpeed">
+    <option>0.125x</option>
+    <option>0.25x</option>
+    <option>0.5x</option>
+    <option selected>1x</option>
+    <option>2x</option>
+    <option>4x</option>
+    <option>8x</option>
+</select>
+
+Zoom: 
+<select id="selZoom">
+    <option selected>1x</option>
+    <option>2x</option>
+    <option>4x</option>
+    <option>8x</option>
+    <option>16x</option>
+</select>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>

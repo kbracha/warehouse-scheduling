@@ -1,5 +1,5 @@
 
-var Obj = function()
+var Obj = function() // PlanarObject
 {
     this.x = 0;
     this.y = 0;
@@ -8,7 +8,7 @@ var Obj = function()
     this.collides = false;
 
     this.canvas = $.parseHTML("<div>" +
-                              "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div>") 
+                              "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div></div>") 
     this.sprite = $(this.canvas).children().first();
 
     this.background = "green";
@@ -23,7 +23,6 @@ var Obj = function()
 
     this.isMoving = false;
     this.moveIteration = 1;
-    //this.moveDirection = null;
 }
 
 
@@ -155,7 +154,7 @@ Obj.prototype.setSprite = function(name)
         return;
 
     $(this.sprite).css("background", "url(" + this.spritePath + "/" + name + ".png" + ") 0 0")
-    $(this.sprite).css("background-size", "cover")
+    $(this.sprite).css("background-size", "100% 100%")
     $(this.sprite).css("background-repeat", "no-repeat")    
 }
 

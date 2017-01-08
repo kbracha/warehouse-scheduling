@@ -26,57 +26,8 @@ $(document).ready(function()
       }
     }
 
-    //manager.add(warehouse);
-
-    
     $("#simulation").focus();
-    bindButtons();
-
-    //for(var x = 7; x < 7 + robotsCount; x++)
-    //{
-    //    prepare(x);
-    //}
-  
-    prepare2();
-
-    requestAnimationFrame(simulate);
-});
-
-var node = null;
-var order;
-var orderIndex;
-var robot;
-var robots = []
-
-var prepare = function(x)
-{
-    var items = createItems(itemsPerRobotCount);
-    var robot = new Robot();
-    robot.x = x;
-    robot.y = 9;
-    manager.add(robot);
-    robots.push(robot);
-
-    //robot.addJob(new CollectItemsJob(items));
-    var robotLocation = 
-    {
-        x : robot.x,
-        y : robot.y - 1
-    }
-
-    var itemsOrdered = tspBranchAndBound(robotLocation, items);
-
-    for(var i = 0; i < itemsOrdered.length; i++)
-    {
-       robot.addJob2(new GoNextToDestinationJob(itemsOrdered[i]))
-    }
-
-    robot.addJob2(new GoToDestinationJob(robotLocation))
-}
-
-var prepare2 = function()
-{
-    var items = createItems(3);
+    bindControls();
 
     for(var i = 0; i < 3; i++)
     {
@@ -87,6 +38,33 @@ var prepare2 = function()
         manager.add(robot);
         robots.push(robot);
     }
+  
+    setup();
+
+    requestAnimationFrame(simulate);
+});
+
+var node = null;
+var order;
+var orderIndex;
+var robot;
+var robots = []
+var items = []
+
+
+var setup = function()
+{
+    for(var i = 0; i < items.length; i++)
+    {
+        manager.remove(items[i]);
+    }
+
+    for(var i = 0; i < robots.length; i++)
+    {
+        robots[i].jobQueue = []
+    }
+
+    items = createItems(3);
 
     var assignments = vrpBranchAndBound(items, robots);
 
@@ -110,12 +88,13 @@ var prepare2 = function()
 }
 
 var frames = 0;
+var framesPerAction = 8;
 var simulate = function() 
 {
     if(running)
     {
         frames++;
-        if(frames == 10)
+        if(frames >= framesPerAction)
         {
             frames = 0;
 
@@ -130,8 +109,8 @@ var simulate = function()
                 }
             }
 
-            if(stillWorking == false)
-                return;
+            //if(stillWorking == false)
+            //    return;
         }
     }
 
@@ -159,7 +138,7 @@ var createItems = function(count)
     return items;
 }
 
-var bindButtons = function()
+var bindControls = function()
 {
     $("#btnRun").click(function(e)
     {
@@ -170,5 +149,155 @@ var bindButtons = function()
     {
         running = false;
     });
+
+    $("#btnReset").click(function(e)
+    {
+        setup();
+    });
+
+    $("#selSpeed").change(function(e)
+    {
+        var val = $("#selSpeed").val()
+        
+        if(val == "0.125x")
+        {
+            framesPerAction = 64; 
+        }
+        else if(val == "0.25x")
+        {
+            framesPerAction = 32;
+        }
+        else if(val == "0.5x")
+        {
+            framesPerAction = 16;
+        }
+        else if(val == "1x")
+        {
+            framesPerAction = 8;
+        }
+        else if(val == "2x")
+        {
+            framesPerAction = 4;
+        }
+        else if(val == "4x")
+        {
+            framesPerAction = 2;
+        }
+        else if(val == "8x")
+        {
+            framesPerAction = 1;
+        }
+
+        console.log(framesPerAction)
+    });
+
+    $("#selZoom").change(function(e)
+    {
+        var val = $("#selZoom").val()
+        
+        if(val == "1x")
+        {
+            manager.setScale(10);
+        }
+        else if(val == "2x")
+        {
+            manager.setScale(20);
+        }
+        else if(val == "4x")
+        {
+            manager.setScale(40);
+        }
+        else if(val == "8x")
+        {
+            manager.setScale(80);
+        }
+        else if(val == "16x")
+        {
+            manager.setScale(160);
+        }
+
+        console.log(framesPerAction)
+    });
+
+    $(window).on("wheel", function(e)
+    {
+        if(!isCtrl)
+        {
+            return;
+        }
+
+        e.preventDefault();
+
+        var simOffset = $("#simulation").offset(); 
+        var relX = e.pageX - simOffset.left;
+        var relY = e.pageY - simOffset.top;
+
+        var scale = manager.getScaleX();
+        var action = 0;
+
+        if (e.originalEvent.wheelDelta > 0 || e.originalEvent.detail < 0) 
+        {
+            if(scale != 160)
+            {
+                action = 2;
+            }
+        }
+        else 
+        {
+            if(scale != 10)
+            {
+                action = 0.5;
+            }
+        }
+
+        
+        if(action != 0)
+        {
+            //var scrollTop = $("#simulation").scrollTop();
+            //var scrollLeft = $("#simulation").scrollLeft();
+            var off = $("#simulation").offset(); 
+            var offY = e.pageY - off.top;
+            var offX = e.pageX - off.left;
+
+            //console.log($("#simulation").scrollTop() )
+            //console.log(offX)
+
+            var val = action * scale;
+            $("#selZoom").val(val / 10 + "x");
+
+            var scrTop = $("#simulation").scrollTop()
+            var scrLeft = $("#simulation").scrollLeft()
+            manager.setScale(val);
+
+            console.log("scrollTop before: " + $("#simulation").scrollTop())
+
+            if(action == 2)
+            {
+                $("#simulation").scrollTop($("#simulation").scrollTop() * 2 + offY);
+                $("#simulation").scrollLeft($("#simulation").scrollLeft() * 2 + offX);
+            }
+            else
+            {
+                console.log("offy: " + offY)
+                console.log("scrollTop before: " + $("#simulation").scrollTop())
+                $("#simulation").scrollTop(scrTop / 2 - offY/2);
+                $("#simulation").scrollLeft(scrLeft / 2 - offX/2);
+                console.log("scrollTop after: " + $("#simulation").scrollTop())
+                //$("#simulation").scrollLeft(0);
+                //$("#simulation").scrollTop();
+                //$("#simulation").scrollLeft($("#simulation").scrollLeft() * action + offX);                
+            }
+        }
+    })
+
+    $(document).keydown(ctrlCheck).keyup(ctrlCheck);
+
+    var isCtrl = false;
+    function ctrlCheck(e) 
+    {
+        if (e.which === 17) {
+            isCtrl = e.type === 'keydown' ? true : false;
+        }
+    }
 }
 

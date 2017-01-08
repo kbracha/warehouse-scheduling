@@ -10,8 +10,17 @@ var Robot = function()
 
     this.returnedHome = false;
 
+    this.canvas = $.parseHTML("<div>" +
+                              "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div>"
+                              //+ "<div style='position: absolute; bottom: 0; left: 0; width: 30px; height: 30px; background-color: red'></div>"
+                              + "</div>") 
+    this.sprite = $(this.canvas).children().first();
+
     this.background = "transparent";
     this.setSpritePath('img/robot')
+
+    this.width = 1;
+    this.height = 1;
 }
 
 
@@ -66,7 +75,6 @@ Robot.prototype.makeAction = function()
     
     return true;
 }
-
 
 Robot.prototype.makeAction2 = function()
 {
