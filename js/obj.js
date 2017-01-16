@@ -23,6 +23,23 @@ var StaticObject = function()
 }
 
 
+StaticObject.prototype.isInstanceOf = function(className)
+{
+    var obj = this;
+
+    while(obj)
+    {
+        if(obj.constructor == className)
+        {
+            return true;
+        }
+
+        obj = obj.uber;
+    }
+
+    return false;
+}
+
 StaticObject.prototype.draw = function()
 {
     manager.draw(this);
@@ -42,21 +59,6 @@ StaticObject.prototype.faceDirection = function(direction)
 StaticObject.prototype.canMove = function(x, y)
 {
     return manager.canPlaceAt(this, x , y);
-}
-
-StaticObject.prototype.canMoveArray = function(positions)
-{
-    var allowedPositions = [];
-
-    for(var i = 0; i < positions.length; i++)
-    {
-        if(this.canMove(positions[i].x, positions[i].y) === true)
-        {
-            allowedPositions.push(positions[i]);
-        }
-    }
-
-    return allowedPositions;
 }
 
 StaticObject.prototype.getClass = function()

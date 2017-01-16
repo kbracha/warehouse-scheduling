@@ -110,7 +110,15 @@ Robot.prototype.makeAction2 = function()
     }
 
     var step = job.nextStep();
-    this.move(step.x, step.y);
+    if(this.canMove(step.x, step.y) == false)
+    {
+        console.log("recalc");
+        job.init(this);
+        step = job.nextStep();
+    }
+    
+    if(this.canMove(step.x, step.y) == true)
+        this.move(step.x, step.y);
 
     return true;
 }

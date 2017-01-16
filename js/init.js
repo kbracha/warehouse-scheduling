@@ -16,20 +16,12 @@ $(document).ready(function()
     buildWarehouse(warehouseScheme, manager);
 
     // for testing travelling salesman
-    for(var i = 0; i < manager.objects.length; i++)
-    {
-      var obj = manager.objects[i];
-
-      if(obj instanceof Shelf)
-      {
-          shelfVertices.push(obj);
-      }
-    }
+    shelfVertices = manager.getObjects(Shelf);
 
     $("#simulation").focus();
     bindControls();
 
-    for(var i = 0; i < 3; i++)
+    for(var i = 0; i < 5; i++)
     {
         var robot = new Robot();
         robot.x = 23 + i;
@@ -64,7 +56,7 @@ var setup = function()
         robots[i].jobQueue = []
     }
 
-    items = createItems(3);
+    items = createItems(5);
 
     var assignments = vrpBranchAndBound(items, robots);
 

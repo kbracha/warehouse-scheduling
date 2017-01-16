@@ -80,6 +80,46 @@ var Node = function(parent, x, y)
 
 Node.prototype = new StaticObject();
 
+// check whether it is possible to ever stay at (x, y)
+// so check whether there are staticobjects which collide
+// because colliding mobileobjects might move and free the space
+var canPossiblyMoveAt = function(hunter, x, y)
+{
+    var objects = manager.getObjectsAt(x, y);
+
+    for(var i = 0; i < objects.length; i++)
+    {
+        if(objects[i].collides === true)
+        {
+            console.log(objects[i].isInstanceOf(MobileObject));
+            //objects[i].isInstanceOf(MobileObject)
+            if(objects[i].constructor.prototype instanceof MobileObject && chessboardDistance(hunter, objects[i]) != 1)
+            {
+                continue;
+            }
+
+            return false;
+        }
+    } 
+
+    return true;
+}
+
+var canPossiblyMoveAtWhich = function(hunter, positions)
+{
+    var allowedPositions = []
+
+    for(var i = 0; i < positions.length; i++)
+    {
+        if(canPossiblyMoveAt(hunter, positions[i].x, positions[i].y) == true)
+        {
+            allowedPositions.push(positions[i]);
+        }
+    }
+
+    return allowedPositions;
+}
+
 var aStarGlow = false;
 var aStarSearchTo = function(hunter, target)
 {
@@ -163,7 +203,7 @@ var aStarSearchTo = function(hunter, target)
             return result;
         }
 
-        possibleNodes = currentNode.canMoveArray(possibleNodes);
+        possibleNodes = canPossiblyMoveAtWhich(hunter, possibleNodes);
 
         possibleNodes.forEach(function(node)
         {
@@ -262,20 +302,6 @@ var findLowestScore = function(list, startNode, target)
 
     return lowestNode;
 }
-
-
-function createArray(length) {
-    var arr = new Array(length || 0),
-        i = length;
-
-    if (arguments.length > 1) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        while(i--) arr[length-1 - i] = createArray.apply(this, args);
-    }
-
-    return arr;
-}
-
 
 // algorithm & example 1: https://www.youtube.com/watch?v=-cLsEHP0qt0
 // example 2: http://www.jot.fm/issues/issue_2003_03/column7.pdf
@@ -451,6 +477,84 @@ var constructDistancesMatrix = function(vertices, vehiclesCount)
 
 var log = false;
 
+
+// https://www.youtube.com/watch?v=A1wsIFDKqBk
+vrpBranchAndBound = function(items, robots)
+{
+    items = items.concat(robots);
+
+    var matrix = constructDistancesMatrix(items, robots.length)
+
+    var objectsOrdered = tspBranchAndBound2(items, matrix);
+
+    var itemType = items[0].getClass();
+    var breakOn = objectsOrdered[0].getClass();
+
+    if(objectsOrdered[0].getClass() == breakOn)
+    {
+        var breakOn = robots[0].getClass()
+    }
+
+    var assignments = [];
+    assignments.push({
+        robot : null,
+        items: []
+    });
+    assignmentsCount = 0;
+
+    //for(var i = 0; i < objectsOrdered.length; i++)
+    var i = 0;
+    var reversed = false;
+    if(objectsOrdered[0].getClass() != itemType)
+    {
+        reversed = true;
+        i = objectsOrdered.length - 1;
+    }
+
+    while(true)
+    {
+        if(objectsOrdered[i].getClass() == itemType)
+        {
+            assignments[assignmentsCount].items.push(objectsOrdered[i]);
+        }
+        else // robot
+        {
+            assignments[assignmentsCount].robot = objectsOrdered[i];
+            assignmentsCount++;  
+
+            if(assignmentsCount != robots.length)
+            {
+                assignments.push({
+                    robot : null,
+                    items: []
+                });     
+            }      
+        }
+        
+        if(reversed == false)
+        {
+            i++;
+
+            if(i == objectsOrdered.length) 
+            {
+                break;
+            }
+        }
+        else
+        {
+            i--;
+
+            if(i < 0) 
+            {
+                break;
+            }
+        }
+    }
+
+    return assignments;
+}
+
+
 var tspCalculateLowerBound = function(matrix, verticesVisited)
 {
     var lowerBound = 0;
@@ -497,85 +601,6 @@ var tspCalculatePathCost = function(matrix, verticesVisited)
     }
 
     return cost;
-}
-
-// https://www.youtube.com/watch?v=A1wsIFDKqBk
-vrpBranchAndBound = function(items, robots)
-{
-    items = items.concat(robots);
-
-    var matrix = constructDistancesMatrix(items, robots.length)
-
-    var objectsOrdered = tspBranchAndBound2(items, matrix);
-
-    var itemType = items[0].getClass();
-    var breakOn = objectsOrdered[0].getClass();
-
-    if(objectsOrdered[0].getClass() == breakOn)
-    {
-        var breakOn = robots[0].getClass()
-    }
-
-    var assignments = [];
-    assignments.push({
-        robot : null,
-        items: []
-    });
-    assignmentsCount = 0;
-
-    //for(var i = 0; i < objectsOrdered.length; i++)
-    var i = 0;
-    var reversed = false;
-    if(objectsOrdered[0].getClass() != itemType)
-    {
-        reversed = true;
-        i = objectsOrdered.length - 1;
-    }
-
-    console.log(objectsOrdered)
-
-    while(true)
-    {
-        if(objectsOrdered[i].getClass() == itemType)
-        {
-            console.log(assignmentsCount);
-            assignments[assignmentsCount].items.push(objectsOrdered[i]);
-        }
-        else // robot
-        {
-            assignments[assignmentsCount].robot = objectsOrdered[i];
-            assignmentsCount++;  
-
-            if(assignmentsCount != robots.length)
-            {
-                assignments.push({
-                    robot : null,
-                    items: []
-                });     
-            }      
-        }
-        
-        if(reversed == false)
-        {
-            i++;
-
-            if(i == objectsOrdered.length) 
-            {
-                break;
-            }
-        }
-        else
-        {
-            i--;
-
-            if(i < 0) 
-            {
-                break;
-            }
-        }
-    }
-
-    return assignments;
 }
 
 var tspBranchAndBound2 = function(items, distancesMatrix)

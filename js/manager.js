@@ -1,7 +1,14 @@
 
 var Manager = function(canvas)
 {
-    this.objects = []
+    this.objects = createArray(50, 50)
+    for(var i = 0; i < 50; i++)
+    {
+        for(var j = 0; j <50; j++)
+        {
+            this.objects[i][j] = [];
+        }
+    }
     
     this.worldWidth = 50;
     this.worldHeight = 50;
@@ -14,18 +21,23 @@ var Manager = function(canvas)
 
 Manager.prototype.add = function(object)
 {
-    if(this.objects.indexOf(object) == -1)
-    {
-        this.objects.push(object);
+    //if(this.objects.indexOf(object) == -1)
+    //{
+        this.objects[object.x][object.y].push(object);
         $(object).css("display","none");
         $(this.canvas).append(object.canvas);
         this.draw(object);
-    }
+    //}
 }
 
 Manager.prototype.remove = function(object)
 {
-    $(object.canvas).remove()
+    var index = this.objects[object.x][object.y].indexOf(object);
+    if(index != -1)
+    {
+        this.objects[object.x][object.y].splice(index, 1);
+        $(object.canvas).remove()
+    }
 }
 
 Manager.prototype.setScale = function(scale)
@@ -42,9 +54,16 @@ Manager.prototype.getScaleX = function()
 
 Manager.prototype.redraw = function()
 {
-    for(var i = 0; i < this.objects.length; i++)
+    for(var i = 0; i < 50; i++)
     {
-        this.draw(this.objects[i]);
+        for(var j = 0; j <50; j++)
+        {
+            for(var k = 0; k < this.objects[i][j].length; k++)
+            {
+                this.draw(this.objects[i][j][k])
+            }
+
+        }
     }
 }
 
@@ -65,6 +84,11 @@ Manager.prototype.draw = function(object)
 
 Manager.prototype.placeAt = function(object, x, y, offX, offY)
 {
+    var index = this.objects[object.x][object.y].indexOf(object);
+    this.objects[object.x][object.y].splice(index, 1);
+
+    this.objects[x][y].push(object);
+
     object.x = x;
     object.y = y;
     
@@ -97,11 +121,10 @@ Manager.prototype.canPlaceAt = function(object, x, y)
     if(object.x === x && object.y === y)
         return true;
 
-    for(var i = 0; i < this.objects.length; i++)
+    var objects = this.objects[x][y];
+    for(var i = 0; i < objects.length; i++)
     {
-        var obj = this.objects[i];
-
-        if(obj.collides === true && obj.x === x && obj.y === y)
+        if(objects[i].collides === true)
         {
             return false;
         }
@@ -112,13 +135,49 @@ Manager.prototype.canPlaceAt = function(object, x, y)
 
 Manager.prototype.getObjectAt = function(classType, x, y)
 {   
-    for(var i = 0; i < this.objects.length; i++)
+    var objects = this.objects[x][y];
+
+    for(var i = 0; i < objects.length; i++)
     {
-        if(this.objects[i].x === x && this.objects[i].y === y && this.objects[i] instanceof classType)
+        if(objects[i] instanceof classType)
         {
-            return this.objects[i];
+            return objects[i];
         }
     }
 
     return null;
 }
+
+Manager.prototype.getObjects = function(classType)
+{
+    var objects = []
+
+    for(var i = 0; i < 50; i++)
+    {
+        for(var j = 0; j <50; j++)
+        {
+            for(var k = 0; k < this.objects[i][j].length; k++)
+            {
+                if(classType == undefined || this.objects[i][j][k] instanceof classType)
+                {
+                    objects.push(this.objects[i][j][k])
+                }
+            }
+
+        }
+    }
+
+    return objects;
+}
+
+Manager.prototype.getObjectsAt = function(x, y)
+{
+    return this.objects[x][y];   
+}
+
+/*
+Manager.prototype.getObjectsAt = function(x, y)
+{
+
+}
+*/
