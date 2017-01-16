@@ -2,7 +2,7 @@
 
 var Wall = function()
 {
-    Obj.apply(this);
+    StaticObject.apply(this);
 
     this.collides = true;
     this.background = "gray";
@@ -10,40 +10,42 @@ var Wall = function()
 }
 
 
-extend(Wall, Obj);
+extend(Wall, StaticObject);
 
 
 var Shelf = function()
 {
-    Obj.apply(this);
+    StaticObject.apply(this);
 
     this.collides = true;
-    this.background = "chocolate";
+    this.background = "transparent";
     this.zIndex = 2;
+
+    this.setSpritePath("img/table")
 }
 
 
-extend(Shelf, Obj);
+extend(Shelf, StaticObject);
 
 
 var Tile = function()
 {
-    Obj.apply(this);
+    StaticObject.apply(this);
 
-    this.background = "yellow";
+    this.setSpritePath("img/tile")
     this.zIndex = 0;
 }
 
-extend(Tile, Obj);
+extend(Tile, StaticObject);
 
 
 var Obstacle = function()
 {
-    Obj.apply(this);
+    StaticObject.apply(this);
 
     this.collides = true;
     this.background = "black";
     this.zIndex = 1;    
 }
 
-extend(Obstacle, Obj);
+extend(Obstacle, StaticObject);

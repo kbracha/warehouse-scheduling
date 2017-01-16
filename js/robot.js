@@ -1,30 +1,32 @@
 
 var Robot = function()
 {
-    Obj.apply(this);
+    MobileObject.apply(this);
 
     this.collides = true;
-    this.zIndex = 3;
+    this.zIndex = 4;
     this.jobQueue = [];
     this.currentJob = null;
 
     this.returnedHome = false;
 
-    this.canvas = $.parseHTML("<div>" +
-                              "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div>"
-                              //+ "<div style='position: absolute; bottom: 0; left: 0; width: 30px; height: 30px; background-color: red'></div>"
-                              + "</div>") 
-    this.sprite = $(this.canvas).children().first();
+// for fun purposes 
+//  this.canvas = $.parseHTML("<div>" +
+//                            "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div>"
+//                            //+ "<div style='position: absolute; bottom: 0; left: 0; width: 30px; height: 30px; background-color: red'></div>"
+//                            + "</div>") 
+//  this.sprite = $(this.canvas).children().first();
+
 
     this.background = "transparent";
     this.setSpritePath('img/robot')
 
     this.width = 1;
-    this.height = 1;
+    this.height = 1.5;
 }
 
 
-extend(Robot, Obj);
+extend(Robot, MobileObject);
 
 
 Robot.prototype.addJob = function(job)

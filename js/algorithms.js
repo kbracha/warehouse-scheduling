@@ -78,8 +78,7 @@ var Node = function(parent, x, y)
     this.cost = 0;
 }
 
-
-Node.prototype = new Obj();
+Node.prototype = new StaticObject();
 
 var aStarGlow = false;
 var aStarSearchTo = function(hunter, target)

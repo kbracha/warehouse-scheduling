@@ -67,6 +67,14 @@ var buildWarehouse = function(scheme, manager)
         {
             if(scheme[scheme.length - 1 - y][x] !== undefined)
             {
+                if(scheme[scheme.length - 1 - y][x] == Shelf)
+                {
+                    var obj = new Tile();
+                    obj.y = y;
+                    obj.x = x;
+                    manager.add(obj);
+                }
+
                 var obj = new scheme[scheme.length - 1 - y][x]();
                 obj.y = y;
                 obj.x = x;
