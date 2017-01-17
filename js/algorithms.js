@@ -91,9 +91,7 @@ var canPossiblyMoveAt = function(hunter, x, y)
     {
         if(objects[i].collides === true)
         {
-            console.log(objects[i].isInstanceOf(MobileObject));
-            //objects[i].isInstanceOf(MobileObject)
-            if(objects[i].constructor.prototype instanceof MobileObject && chessboardDistance(hunter, objects[i]) != 1)
+            if(objects[i].isInstanceOf(MobileObject) && chessboardDistance(hunter, objects[i]) != 1)
             {
                 continue;
             }
@@ -487,12 +485,12 @@ vrpBranchAndBound = function(items, robots)
 
     var objectsOrdered = tspBranchAndBound2(items, matrix);
 
-    var itemType = items[0].getClass();
-    var breakOn = objectsOrdered[0].getClass();
+    var itemType = items[0].uber;
+    var breakOn = objectsOrdered[0].uber;
 
-    if(objectsOrdered[0].getClass() == breakOn)
+    if(objectsOrdered[0].uber == breakOn)
     {
-        var breakOn = robots[0].getClass()
+        breakOn = robots[0].uber
     }
 
     var assignments = [];
@@ -505,7 +503,7 @@ vrpBranchAndBound = function(items, robots)
     //for(var i = 0; i < objectsOrdered.length; i++)
     var i = 0;
     var reversed = false;
-    if(objectsOrdered[0].getClass() != itemType)
+    if(objectsOrdered[0].uber != itemType)
     {
         reversed = true;
         i = objectsOrdered.length - 1;
@@ -513,7 +511,7 @@ vrpBranchAndBound = function(items, robots)
 
     while(true)
     {
-        if(objectsOrdered[i].getClass() == itemType)
+        if(objectsOrdered[i].uber == itemType)
         {
             assignments[assignmentsCount].items.push(objectsOrdered[i]);
         }
@@ -739,4 +737,180 @@ var tspBranchAndBound2 = function(items, distancesMatrix)
         var bestResIndex = results.indexOf(bestResult);
         results.splice(bestResIndex, 1);
     }
+}
+
+
+
+var constructSavingsMatrix = function(depot, vertices)
+{
+    var savingsMatrix = createArray(vertices.length, vertices.length);
+
+    for(var i = 0; i < vertices.length; i++)
+    {
+        for(var j = i + 1; j < vertices.length; j++)
+        {
+            var savings = calculateSavings(depot, vertices[i], vertices[j]);
+            savingsMatrix[j][i] = savings;
+        }
+    }
+
+    return savingsMatrix;
+}
+
+var orderMatrixSavings = function(matrix)
+{
+    var orderedSavings = []
+
+    for(var i = 0; i < matrix.length; i++)
+    {
+        for(j = i + 1; j < matrix.length; j++)
+        {
+            var saving = 
+            {
+                cityA : j,
+                cityB : i,
+                value: matrix[j][i]
+            }
+
+            orderedSavings.push(saving);
+        }
+    }
+
+    orderedSavings.sort(function(savingA, savingB)
+    {
+        return savingB.value - savingA.value;
+    });
+
+    //console.log(orderedSavings);
+    return orderedSavings;
+}
+
+var calculateSavings = function(depot, verticeA, verticeB)
+{
+    //return aStarSearchTo(depot, verticeA).cost + aStarSearchTo(depot, verticeB).cost - aStarSearchTo(verticeA, verticeB).cost;
+    //console.log(chessboardDistance(depot, verticeA));
+    //console.log(chessboardDistance(depot, verticeB));
+    //console.log(chessboardDistance(verticeA, verticeB));
+    return euclidianDistance(depot, verticeA) + euclidianDistance(depot, verticeB) - euclidianDistance(verticeA, verticeB);
+}
+
+
+var depot = {x: 40, y: 40}
+var vertices = [{x : 22, y: 22, weight: 18}, {x: 36, y: 26, weight: 26}, {x : 21, y: 45, weight: 11}, {x : 45, y: 35, weight: 30}, 
+                {x : 55, y: 20, weight: 21}, {x: 55, y: 45, weight: 16}, {x : 26, y: 59, weight: 29}, {x: 55, y: 65, weight: 37}]
+
+var clarkeWrightSavings = function(depot, vertices, robotCapacity)
+{
+    var savingsMatrix = constructSavingsMatrix(depot, vertices);
+    var orderedSavings = orderMatrixSavings(savingsMatrix);
+
+    var verticesUnused = [];
+    for(var i = 0; i < vertices.length; i++)
+    {
+        verticesUnused.push(i);
+    }
+    var routes = [];
+
+    for(var j = 0; j < orderedSavings.length; j++)
+    {
+        var route = orderedSavings[j];
+        var cityA = route.cityA;
+        var cityB = route.cityB;
+        var routeOfCityA = findCityRoute(routes, cityA);
+        var routeOfCityB = findCityRoute(routes, cityB);
+
+        if(routeOfCityA == null && routeOfCityB == null)
+        {
+            var weight = vertices[cityA].weight + vertices[cityB].weight;
+
+            if(weight <= robotCapacity)
+            {
+                routes.push(
+                    {
+                        cities : [cityA, cityB],
+                        weight : weight
+                    }
+                )
+
+                removeFromUnused(cityA, verticesUnused);
+                removeFromUnused(cityB, verticesUnused);
+            }
+        }
+        else 
+        {
+            if(routeOfCityA == null)
+            {
+                var tempCity = cityA;
+                
+                routeOfCityA = routeOfCityB;
+                cityA = cityB;
+
+                cityB = tempCity;
+                routeOfCityB = {
+                    cities : [cityB],
+                    weight : vertices[cityB].weight
+                }
+            }
+            else if(routeOfCityB == null)
+            {
+                routeOfCityB = {
+                    cities : [cityB],
+                    weight : vertices[cityB].weight
+                }
+            }
+
+            if(routeOfCityA != routeOfCityB && routeOfCityA.weight + routeOfCityB.weight <= robotCapacity)
+            {
+                if(isAtTheEdgeOfRoute(cityA, routeOfCityA) && isAtTheEdgeOfRoute(cityB, routeOfCityB))
+                {
+                    if(routeOfCityA.cities.indexOf(cityA) == 0)
+                    {
+                        routeOfCityA.cities.reverse();
+                    }
+
+                    if(routeOfCityB.cities.indexOf(cityB) != 0)
+                    {
+                        routeOfCityB.cities.reverse();
+                    }
+
+                    routeOfCityA.cities = routeOfCityA.cities.concat(routeOfCityB.cities);
+                    routeOfCityA.weight += routeOfCityB.weight;
+
+                    console.log(routeOfCityA.cities)
+
+                    var index = routes.indexOf(routeOfCityB);
+                    if(index != -1)
+                        routes.splice(index, 1);
+
+                    removeFromUnused(cityB, verticesUnused);
+                }
+            }
+        }
+    }
+
+    function findCityRoute(routes, city)
+    {
+        for(var i = 0; i < routes.length; i++)
+        {
+            if(routes[i].cities.indexOf(city) != -1)
+            {
+                return routes[i];
+            }
+        }
+
+        return null;
+    }
+    function isAtTheEdgeOfRoute(city, route)
+    {
+        var index = route.cities.indexOf(city);
+        return index == 0 || index == route.cities.length - 1;
+    }
+    function removeFromUnused(city, unusedVertices)
+    {
+        var index = unusedVertices.indexOf(city);
+        unusedVertices.splice(index, 1);
+    }
+
+    console.log(routes);
+    console.log(verticesUnused);
 }

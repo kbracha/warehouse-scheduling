@@ -25,16 +25,19 @@ var StaticObject = function()
 
 StaticObject.prototype.isInstanceOf = function(className)
 {
-    var obj = this;
+    if(this instanceof className)
+        return true;
 
-    while(obj)
+    var prototype = this.uber;
+
+    while(prototype != null)
     {
-        if(obj.constructor == className)
+        if(prototype.constructor == className)
         {
             return true;
         }
 
-        obj = obj.uber;
+        prototype = prototype.uber;
     }
 
     return false;

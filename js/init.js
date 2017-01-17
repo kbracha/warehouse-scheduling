@@ -18,6 +18,8 @@ $(document).ready(function()
     // for testing travelling salesman
     shelfVertices = manager.getObjects(Shelf);
 
+    clarkeWrightSavings(depot, vertices, 100);
+    
     $("#simulation").focus();
     bindControls();
 
@@ -119,7 +121,7 @@ var createItems = function(count)
         var randIndex = randInt(0, shelfVertices.length - 1);
         var randshelf = shelfVertices.splice(randIndex, 1)[0];
     
-        var item = new Item();
+        var item = new ItemTypes[i]();
         item.x = randshelf.x; 
         item.y = randshelf.y; 
         
