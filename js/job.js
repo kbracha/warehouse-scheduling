@@ -44,6 +44,7 @@ var GoToDestinationJob = function(target)
     this.started = false;
     this.completed = false;
     this.node = null;
+    this.steps = []
 }
 
 GoToDestinationJob.prototype.init = function(startLocation)
@@ -61,7 +62,15 @@ GoToDestinationJob.prototype.init = function(startLocation)
 
 GoToDestinationJob.prototype.createPath = function(startLocation)
 {
-    this.node = aStarSearchTo(startLocation, this.target).node
+    this.node = aStarSearchTo(startLocation, this.target).node;
+
+    var node = this.node;
+    this.steps = []
+    while(node != null)
+    {
+        this.steps.push(node);
+        node = node.child;
+    }
 }
 
 GoToDestinationJob.prototype.nextStep = function()
@@ -89,6 +98,14 @@ GoNextToDestinationJob = function()
 extend(GoNextToDestinationJob, GoToDestinationJob);
 
 GoNextToDestinationJob.prototype.createPath = function(startLocation)
-{
-    this.node = aStarSearchNextTo(startLocation, this.target).node
+{   
+    this.node = aStarSearchNextTo(startLocation, this.target).node;
+
+    this.steps = []
+    var node = this.node;
+    while(node != null)
+    {
+        this.steps.push(node);
+        node = node.child;
+    }
 }

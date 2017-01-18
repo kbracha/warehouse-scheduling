@@ -89,6 +89,10 @@ $(document).ready(function()
         manager.add(robot);
         robots.push(robot); 
 
+        var mark = robot.createMark(23 + i, 33);
+
+        manager.add(mark);
+
         var itenz = []
         for(var j = 0; j < routes2[i].cities.length; j++)
         {
@@ -97,22 +101,19 @@ $(document).ready(function()
 
         console.log(itenz);
 
-        assignItemsToRobot(robot, itenz);      
+        assignItemsToRobot(robot, itenz);
     }
+
+    displayAllRouteMarks();
     
-    /*
-    for(var i = 0; i < 5; i++)
+    for(var i = 0; i < robots.length; i++)
     {
-        var robot = new Robot();
-        robot.x = 23 + i;
-        robot.y = 33;
-
-        manager.add(robot);
-        robots.push(robot);
+        $("#selRobots").append($("<option></option>")
+                    .attr("value",robots[i])
+                    .text(robots[i].name)); 
     }
 
-    setup();
-    */
+    //setup();
 
     requestAnimationFrame(simulate);
     
@@ -177,6 +178,34 @@ var assignItemsToRobot = function(robot, items)
     robot.addJob2(new GoToDestinationJob(robotLocation)) 
 }
 
+var displayAllRouteMarks = function()
+{
+    for(var i = 0; i < robots.length; i++)
+    {
+        displayRouteMarks(robots[i]);
+    }
+}
+
+var clearAllRouteMarks = function()
+{
+    var marks = manager.getObjects(Mark);
+
+    for(var i = 0; i < marks.length; i++)
+    {
+        manager.remove(marks[i]);
+    }
+}
+
+var displayRouteMarks = function(robot)
+{
+    var marks = robot.generateRouteMarks();
+
+    for(var j = 0; j < marks.length; j++)
+    {
+        manager.add(marks[j]);
+    }      
+}
+
 var frames = 0;
 var framesPerAction = 8;
 var oneRound = false;
@@ -198,7 +227,6 @@ var simulate = function()
         {
             frames = 0;
 
-            //if(!robot.makeAction())
             var stillWorking = false;
 
             for(var i = 0; i < robots.length; i ++)
@@ -404,5 +432,15 @@ var bindControls = function()
             isCtrl = e.type === 'keydown' ? true : false;
         }
     }
+
+    $("#btnDisplayAllMarks").click(function(e)
+    {
+        displayAllRouteMarks();
+    });
+
+    $("#btnClearAllMarks").click(function(e)
+    {
+        clearAllRouteMarks();
+    });
 }
 

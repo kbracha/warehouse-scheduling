@@ -4,7 +4,7 @@ var Robot = function()
     MobileObject.apply(this);
 
     this.collides = true;
-    this.zIndex = 4;
+    this.zIndex = 5;
     this.jobQueue = [];
     this.currentJob = null;
 
@@ -23,60 +23,20 @@ var Robot = function()
 
     this.width = 1;
     this.height = 1.5;
+
+    this.name = robotNames[Robot.count];
+    Robot.count += 1;
 }
 
 
 extend(Robot, MobileObject);
 
-
-Robot.prototype.addJob = function(job)
-{
-    if(this.currentJob == null)
-    {
-        this.currentJob = job;
-    }
-    else
-    {
-        this.jobQueue.push(job);
-    }
-} 
+Robot.count = 0;
 
 Robot.prototype.addJob2 = function(job)
 {
     this.jobQueue.push(job);
 } 
-
-Robot.prototype.makeAction = function()
-{
-    if(this.currentJob == null)
-    {
-        return false;
-    }
-
-    if(this.currentJob.started == false)
-    {
-        this.currentJob.init(this);
-        this.currentJob.started = true;
-    }
-
-    if(this.currentJob.node == null)
-    {
-        this.currentJob.moveToNextItem();
-        if(this.currentJob.getCurrentItem() == undefined)
-        {
-            this.currentJob.completed = true;
-            this.currentJob = null;
-            return false;
-        }
-
-        this.currentJob.node = aStarSearchTo(this, this.currentJob.getCurrentItem()).node;
-    }
-
-    robot.move(this.currentJob.node.x, this.currentJob.node.y);
-    this.currentJob.node = this.currentJob.node.child;
-    
-    return true;
-}
 
 Robot.prototype.makeAction2 = function()
 {
@@ -128,3 +88,51 @@ Robot.prototype.resolveJob = function(job)
 {
 
 }
+
+Robot.prototype.createMark = function(x, y)
+{
+    return new Mark(this.name[0], x , y);
+}
+
+Robot.prototype.generateRouteMarks = function()
+{
+    var marks = [];
+    var startLocation = this;
+
+    for(var i = 0; i < this.jobQueue.length; i++)
+    {
+        var job = this.jobQueue[i];
+
+        if(job instanceof GoToDestinationJob || job instanceof GoNextToDestinationJob)
+        {
+            if(job.started == false)
+            {
+                job.createPath(startLocation);
+            }
+
+            for(var j = 0; j < job.steps.length; j++)
+            {
+                marks.push(this.createMark(job.steps[j].x, job.steps[j].y))
+            }
+
+            startLocation = job.steps[job.steps.length - 1];
+        }
+    }
+
+    return marks;
+}
+
+
+var robotNames = ["Andy", "Ben", "Chris", "Dean", "Ernie", "Frank", "Greg", "Ian", "John"]
+
+
+var Mark = function(character, x , y)
+{
+    StaticObject.apply(this);
+
+    this.setSprite("img/characters/letter_" + character + ".png");
+    this.x = x;
+    this.y = y;
+}
+
+extend(Mark, StaticObject);

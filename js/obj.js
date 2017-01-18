@@ -11,7 +11,7 @@ var StaticObject = function()
                               "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div></div>") 
     this.sprite = $(this.canvas).children().first();
 
-    this.background = "green";
+    this.background = "transparent";
     this.zIndex = 0;   
 
     this.direction = Direction.South;
@@ -56,7 +56,7 @@ StaticObject.prototype.move = function(x, y)
 StaticObject.prototype.faceDirection = function(direction)
 {
     this.direction = direction;
-    this.setSprite(direction);
+    this.setSpriteName(direction);
 }
 
 StaticObject.prototype.canMove = function(x, y)
@@ -73,17 +73,22 @@ StaticObject.prototype.setSpritePath = function(path)
 {
     this.spritePath = path;
     
-    this.setSprite(this.direction)
+    this.setSpriteName(this.direction)
 }
 
-StaticObject.prototype.setSprite = function(name)
+StaticObject.prototype.setSpriteName = function(name)
 {
     if(this.spritePath == null)
         return;
 
-    $(this.sprite).css("background", "url(" + this.spritePath + "/" + name + ".png" + ") 0 0")
+    this.setSprite(this.spritePath + "/" + name + ".png");
+}
+
+StaticObject.prototype.setSprite = function(fullPath)
+{
+    $(this.sprite).css("background", "url(" + fullPath + ") 0 0")
     $(this.sprite).css("background-size", "100% 100%")
-    $(this.sprite).css("background-repeat", "no-repeat")    
+    $(this.sprite).css("background-repeat", "no-repeat")       
 }
 
 
@@ -164,12 +169,12 @@ MobileObject.prototype.continueMove = function()
     if(this.currentMoveIteration != this.iterationsPerMove)
     {
         spriteName += "-" + this.currentMoveIteration;
-        this.setSprite(spriteName);
+        this.setSpriteName(spriteName);
         this.currentMoveIteration++;
     }
     else
     {
-        this.setSprite(spriteName);
+        this.setSpriteName(spriteName);
         this.isMoving = false;
         this.currentMoveIteration = 1;
     }
