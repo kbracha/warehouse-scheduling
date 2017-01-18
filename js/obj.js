@@ -169,6 +169,7 @@ MobileObject.prototype.continueMove = function()
     }
     else
     {
+        this.setSprite(spriteName);
         this.isMoving = false;
         this.currentMoveIteration = 1;
     }

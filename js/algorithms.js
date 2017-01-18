@@ -799,6 +799,7 @@ var depot = {x: 40, y: 40}
 var vertices = [{x : 22, y: 22, weight: 18}, {x: 36, y: 26, weight: 26}, {x : 21, y: 45, weight: 11}, {x : 45, y: 35, weight: 30}, 
                 {x : 55, y: 20, weight: 21}, {x: 55, y: 45, weight: 16}, {x : 26, y: 59, weight: 29}, {x: 55, y: 65, weight: 37}]
 
+// document VehicleRouting.doc
 var clarkeWrightSavings = function(depot, vertices, robotCapacity)
 {
     var savingsMatrix = constructSavingsMatrix(depot, vertices);
@@ -876,7 +877,7 @@ var clarkeWrightSavings = function(depot, vertices, robotCapacity)
                     routeOfCityA.cities = routeOfCityA.cities.concat(routeOfCityB.cities);
                     routeOfCityA.weight += routeOfCityB.weight;
 
-                    console.log(routeOfCityA.cities)
+                    //console.log(routeOfCityA.cities)
 
                     var index = routes.indexOf(routeOfCityB);
                     if(index != -1)
@@ -911,6 +912,17 @@ var clarkeWrightSavings = function(depot, vertices, robotCapacity)
         unusedVertices.splice(index, 1);
     }
 
-    console.log(routes);
-    console.log(verticesUnused);
+    for(var i = 0; i < verticesUnused.length; i++)
+    {
+        var index = verticesUnused[i];
+
+        routes.push(
+            {
+                cities : [index],
+                weight : vertices[index].weight
+            }
+        )        
+    }
+
+    return routes;
 }

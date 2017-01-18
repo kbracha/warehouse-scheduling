@@ -18,11 +18,89 @@ $(document).ready(function()
     // for testing travelling salesman
     shelfVertices = manager.getObjects(Shelf);
 
-    clarkeWrightSavings(depot, vertices, 100);
+    var order = new Order();
+    order.add(Toothbrush, 2);
+    order.add(Toothbrush, 5);
+
+    order.add(Flashlight, 3);
+    order.add(Glass, 10);
+    order.add(Pad, 2);
+    order.add(Headphones, 1);
+
+    console.log(order.getWeight());
+
+    items = createItemSources(ItemTypes.length);
+
+    var orderItems = order.getItems();
+    orderItems.push({
+        itemType : Headphones,
+        quantity : 1
+    })
+
+    orderItems.push({
+        itemType : Pad,
+        quantity : 3
+    })
+
+    orderItems.push({
+        itemType : Toothbrush,
+        quantity : 3
+    })
+
+    console.log("--- order items -- ")
+    console.log(orderItems);
+    console.log("-----");
+
+    var vertices = []
+    for(var i = 0; i < orderItems.length; i++)
+    {
+        console.log(getItemSource(orderItems[i].itemType))
+        var itemSource = getItemSource(orderItems[i].itemType);
+        var itemToOrder = new orderItems[i].itemType();
+        itemToOrder.x = itemSource.x;
+        itemToOrder.y = itemSource.y;
+        itemToOrder.weight = itemToOrder.weight * orderItems[i].quantity;
+        console.log(itemToOrder.weight)
+        vertices.push(itemToOrder);
+    }
+    var depot = {
+        x : 23,
+        y : 33
+    }
+
+    var routes = clarkeWrightSavings(depot, vertices, 50);
+    console.log(routes);
+
+    var itemDummies = order.createItemDummies(getItemSource);
+    console.log(itemDummies);
+    var routes2 = clarkeWrightSavings(depot, itemDummies, 50);
+
+    console.log(routes2);
     
     $("#simulation").focus();
     bindControls();
 
+    for(var i = 0; i < routes2.length; i++)
+    {
+        var robot = new Robot();
+        robot.x = 23 + i;
+        robot.y = 33;
+
+        manager.add(robot);
+        robots.push(robot); 
+
+        var itenz = []
+        for(var j = 0; j < routes2[i].cities.length; j++)
+        {
+            itenz.push(itemDummies[routes2[i].cities[j]]);
+        }
+
+        console.log(itenz);
+
+        assignItemsToRobot(robot, itenz);      
+    }
+    
+    /*
     for(var i = 0; i < 5; i++)
     {
         var robot = new Robot();
@@ -32,10 +110,12 @@ $(document).ready(function()
         manager.add(robot);
         robots.push(robot);
     }
-  
+
     setup();
+    */
 
     requestAnimationFrame(simulate);
+    
 });
 
 var node = null;
@@ -81,13 +161,39 @@ var setup = function()
     }
 }
 
+var assignItemsToRobot = function(robot, items)
+{
+    for(var i = 0; i < items.length; i++)
+    {
+       robot.addJob2(new GoNextToDestinationJob(items[i]))
+    }   
+
+    var robotLocation = 
+    {
+        x : robot.x,
+        y : robot.y
+    }    
+
+    robot.addJob2(new GoToDestinationJob(robotLocation)) 
+}
+
 var frames = 0;
 var framesPerAction = 8;
+var oneRound = false;
 var simulate = function() 
 {
-    if(running)
+    if(running || oneRound)
     {
-        frames++;
+        if(oneRound == true)
+        {
+            frames = framesPerAction;
+            oneRound = false;
+        }
+        else
+        {
+            frames++;
+        }
+
         if(frames >= framesPerAction)
         {
             frames = 0;
@@ -112,8 +218,10 @@ var simulate = function()
 }
 
 
-var createItems = function(count)
+var createItemSources = function(count)
 {
+    Math.seedrandom('test');
+    
     var items = []
 
     for(var i = 0; i < count; i++)
@@ -132,6 +240,17 @@ var createItems = function(count)
     return items;
 }
 
+var getItemSource = function(itemType)
+{
+    for(var i = 0; i < items.length; i++)
+    {
+        if(items[i] instanceof itemType)
+        {
+            return items[i];
+        }
+    }
+}
+
 var bindControls = function()
 {
     $("#btnRun").click(function(e)
@@ -142,6 +261,11 @@ var bindControls = function()
     $("#btnPause").click(function(e)
     {
         running = false;
+    });
+
+    $("#btnOneRound").click(function(e)
+    {
+        oneRound = true;
     });
 
     $("#btnReset").click(function(e)
@@ -247,14 +371,9 @@ var bindControls = function()
         
         if(action != 0)
         {
-            //var scrollTop = $("#simulation").scrollTop();
-            //var scrollLeft = $("#simulation").scrollLeft();
             var off = $("#simulation").offset(); 
             var offY = e.pageY - off.top;
             var offX = e.pageX - off.left;
-
-            //console.log($("#simulation").scrollTop() )
-            //console.log(offX)
 
             var val = action * scale;
             $("#selZoom").val(val / 10 + "x");
@@ -263,8 +382,6 @@ var bindControls = function()
             var scrLeft = $("#simulation").scrollLeft()
             manager.setScale(val);
 
-            console.log("scrollTop before: " + $("#simulation").scrollTop())
-
             if(action == 2)
             {
                 $("#simulation").scrollTop($("#simulation").scrollTop() * 2 + offY);
@@ -272,14 +389,8 @@ var bindControls = function()
             }
             else
             {
-                console.log("offy: " + offY)
-                console.log("scrollTop before: " + $("#simulation").scrollTop())
                 $("#simulation").scrollTop(scrTop / 2 - offY/2);
-                $("#simulation").scrollLeft(scrLeft / 2 - offX/2);
-                console.log("scrollTop after: " + $("#simulation").scrollTop())
-                //$("#simulation").scrollLeft(0);
-                //$("#simulation").scrollTop();
-                //$("#simulation").scrollLeft($("#simulation").scrollLeft() * action + offX);                
+                $("#simulation").scrollLeft(scrLeft / 2 - offX/2);              
             }
         }
     })

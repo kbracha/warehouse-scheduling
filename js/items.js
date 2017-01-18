@@ -85,21 +85,21 @@ var Pad = function()
 Pad.prototype.weight = 20;
 extend(Pad, Item);
 
-var ToothBrush = function()
+var Toothbrush = function()
 {
     Item.apply(this);
     this.setSpritePath("img/toothbrush")
 }
-ToothBrush.prototype.weight = 2;
-extend(ToothBrush, Item);
+Toothbrush.prototype.weight = 2;
+extend(Toothbrush, Item);
 
-var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headphones, Pad, ToothBrush]
+var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headphones, Pad, Toothbrush]
 
 
 
 var Order = function()
 {
-    this.items = {};
+    this.items = [];
 }
 
 
@@ -109,7 +109,7 @@ Order.prototype.add = function(itemType, quantity)
     {
         this.items[itemType] = {
             quantity : 0,
-            link: itemType // create a link because when iterating over keys in items the key reference doesn't work
+            itemType: itemType // create a link because when iterating over keys in items the key reference doesn't work
         }
     }
 
@@ -120,10 +120,45 @@ Order.prototype.getWeight = function()
 {
     var weight = 0;
 
-    for(var itemType in this.items)
+    for(var key in this.items)
     {
-        weight += this.items[itemType].quantity * this.items[itemType].link.prototype.weight;
+        weight += this.items[key].quantity * this.items[key].itemType.prototype.weight;
     }
 
     return weight;
+}
+
+Order.prototype.createItemDummies = function(getItemSourceFunction)
+{
+    var itemDummies = [];
+
+    for(var key in this.items)
+    {
+        var itemSource = getItemSourceFunction(this.items[key].itemType);
+
+        for(var i = 0; i < this.items[key].quantity; i++)
+        {
+            var itemDummy = new this.items[key].itemType();
+
+            itemDummy.x = itemSource.x;
+            itemDummy.y = itemSource.y;
+            itemDummy.forOrder = this;
+
+            itemDummies.push(itemDummy);
+        }
+    }
+    
+    return itemDummies;    
+}
+
+Order.prototype.getItems = function()
+{
+    var items = []
+
+    for(var key in this.items)
+    {
+        items.push(this.items[key]);
+    }
+    
+    return items;
 }
