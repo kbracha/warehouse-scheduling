@@ -180,6 +180,11 @@ MobileObject.prototype.continueMove = function()
     }
 }
 
+MobileObject.prototype.getDistance = function(object)
+{
+    return manager.getChessboardDistance(this, object);
+}
+
 
 function extend(Child, Parent) 
 {

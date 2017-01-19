@@ -9,6 +9,8 @@ var Item = function()
     this.zIndex = 3;
 
     this.weight = 5;
+
+    this.forOrder = null;
 }
 
 extend(Item, StaticObject);
@@ -128,9 +130,9 @@ Order.prototype.getWeight = function()
     return weight;
 }
 
-Order.prototype.createItemDummies = function(getItemSourceFunction)
+Order.prototype.createItems = function(getItemSourceFunction)
 {
-    var itemDummies = [];
+    var items = [];
 
     for(var key in this.items)
     {
@@ -138,19 +140,20 @@ Order.prototype.createItemDummies = function(getItemSourceFunction)
 
         for(var i = 0; i < this.items[key].quantity; i++)
         {
-            var itemDummy = new this.items[key].itemType();
+            var item = new this.items[key].itemType();
 
-            itemDummy.x = itemSource.x;
-            itemDummy.y = itemSource.y;
-            itemDummy.forOrder = this;
+            item.x = itemSource.x;
+            item.y = itemSource.y;
+            item.forOrder = this;
 
-            itemDummies.push(itemDummy);
+            items.push(item);
         }
     }
     
-    return itemDummies;    
+    return items;    
 }
 
+/*
 Order.prototype.getItems = function()
 {
     var items = []
@@ -162,3 +165,4 @@ Order.prototype.getItems = function()
     
     return items;
 }
+*/

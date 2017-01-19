@@ -175,6 +175,11 @@ Manager.prototype.getObjectsAt = function(x, y)
     return this.objects[x][y];   
 }
 
+Manager.prototype.getChessboardDistance = function(objectA, objectB)
+{
+    return chessboardDistance(objectA, objectB);
+}   
+
 /*
 Manager.prototype.getObjectsAt = function(x, y)
 {

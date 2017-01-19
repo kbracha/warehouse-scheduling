@@ -72,7 +72,6 @@ var randInt = function(min, max)
 var Node = function(parent, x, y)
 {
     this.parent = parent;
-    this.collides = true;
     this.x = x;
     this.y = y;
     this.cost = 0;
@@ -91,7 +90,7 @@ var canPossiblyMoveAt = function(hunter, x, y)
     {
         if(objects[i].collides === true)
         {
-            if(objects[i].isInstanceOf(MobileObject) && chessboardDistance(hunter, objects[i]) != 1)
+            if((objects[i].isInstanceOf(MobileObject) && chessboardDistance(hunter, objects[i]) != 1) || objects[i] == hunter)
             {
                 continue;
             }
@@ -119,8 +118,13 @@ var canPossiblyMoveAtWhich = function(hunter, positions)
 }
 
 var aStarGlow = false;
-var aStarSearchTo = function(hunter, target)
+var aStarSearchTo = function(start, end, hunter)
 {
+    if(hunter == undefined)
+    {
+        hunter = start;
+    }
+
     var nodes = createArray(50, 50);
     for(var i = 0; i < nodes.length; i++)
     {
@@ -135,49 +139,56 @@ var aStarSearchTo = function(hunter, target)
     var closedList = []; // the node has been visited
     var cameFrom = {};
 
-    var startNode = nodes[hunter.x][hunter.y];
+    var startNode = nodes[start.x][start.y];
     var currentNode = startNode;
 
     openList.push(currentNode);
 
     do
     {
-        currentNode = findLowestScore(openList, startNode, target);
-
-        var possibleNodes = [];
-        if (currentNode.x !== 0)
-        {
-            possibleNodes.push(nodes[currentNode.x - 1][currentNode.y]);
-        }
-        if (currentNode.y !== 49)
-        {
-            possibleNodes.push(nodes[currentNode.x][currentNode.y + 1]);
-        }
-        if (currentNode.x !== 49)
-        {
-            possibleNodes.push(nodes[currentNode.x + 1][currentNode.y]);
-        }
-        if (currentNode.y !== 0)
-        {
-            possibleNodes.push(nodes[currentNode.x][currentNode.y - 1]);
-        }    
-
+        currentNode = findLowestScore(openList, startNode, end);
         var found = false;
-        possibleNodes.forEach(function(node)
+        var possibleNodes = [];
+
+        if(currentNode.x == end.x && currentNode.y == end.y)
         {
-            if(node.x === target.x && node.y === target.y)
+            found = true;
+        }
+        else
+        {
+            if (currentNode.x !== 0)
             {
-                found = true;
+                possibleNodes.push(nodes[currentNode.x - 1][currentNode.y]);
             }
-        });
+            if (currentNode.y !== 49)
+            {
+                possibleNodes.push(nodes[currentNode.x][currentNode.y + 1]);
+            }
+            if (currentNode.x !== 49)
+            {
+                possibleNodes.push(nodes[currentNode.x + 1][currentNode.y]);
+            }
+            if (currentNode.y !== 0)
+            {
+                possibleNodes.push(nodes[currentNode.x][currentNode.y - 1]);
+            }    
+
+            possibleNodes.forEach(function(node)
+            {
+                if(node.x === end.x && node.y === end.y)
+                {
+                    found = true;
+                }
+            });
+        }
 
         if(found === true)
         {
             var cost = 0;
 
             var n = {
-                x : target.x,
-                y : target.y,
+                x : end.x,
+                y : end.y,
                 child : null,
                 parent : currentNode
             }
@@ -210,13 +221,6 @@ var aStarSearchTo = function(hunter, target)
                 node.parent = currentNode;
                 node.cost = currentNode.cost + 1;
                 openList.push(node);
-
-                if(aStarGlow)
-                {
-                    var tile = manager.getObjectAt(Tile, node.x, node.y);
-                    tile.background = "pink";
-                    tile.draw();           
-                }
             }
             else if(openList.indexOf(node) !== -1)
             {
@@ -230,17 +234,9 @@ var aStarSearchTo = function(hunter, target)
             }
         });
 
-
         var index = openList.indexOf(currentNode);
         openList.splice(index, 1);
         closedList.push(currentNode);
-
-        if(aStarGlow)
-        {
-            var tile = manager.getObjectAt(Tile, currentNode.x, currentNode.y);
-            tile.background = "red";
-            tile.draw();
-        }
     }
     while(openList.length !== 0)
 
@@ -248,9 +244,9 @@ var aStarSearchTo = function(hunter, target)
     return result;
 }
 
-var aStarSearchNextTo = function(hunter, target)
+var aStarSearchNextTo = function(start, end, hunter)
 {
-    var result = aStarSearchTo(hunter, target);
+    var result = aStarSearchTo(start, end, hunter);
 
     if(result.node != null)
     {
@@ -800,129 +796,138 @@ var vertices = [{x : 22, y: 22, weight: 18}, {x: 36, y: 26, weight: 26}, {x : 21
                 {x : 55, y: 20, weight: 21}, {x: 55, y: 45, weight: 16}, {x : 26, y: 59, weight: 29}, {x: 55, y: 65, weight: 37}]
 
 // document VehicleRouting.doc
-var clarkeWrightSavings = function(depot, vertices, robotCapacity)
+var clarkeWrightSavings = function(depot, items, robotCapacity)
 {
-    var savingsMatrix = constructSavingsMatrix(depot, vertices);
+    var savingsMatrix = constructSavingsMatrix(depot, items);
     var orderedSavings = orderMatrixSavings(savingsMatrix);
 
-    var verticesUnused = [];
-    for(var i = 0; i < vertices.length; i++)
+    var itemsUnused = [];
+    for(var i = 0; i < items.length; i++)
     {
-        verticesUnused.push(i);
+        itemsUnused.push(i);
     }
-    var routes = [];
+    var assignments = [];
 
     for(var j = 0; j < orderedSavings.length; j++)
     {
-        var route = orderedSavings[j];
-        var cityA = route.cityA;
-        var cityB = route.cityB;
-        var routeOfCityA = findCityRoute(routes, cityA);
-        var routeOfCityB = findCityRoute(routes, cityB);
+        var assignment = orderedSavings[j];
+        var itemA = assignment.cityA;
+        var itemB = assignment.cityB;
+        var assignmentOfItemA = findItemAssignment(assignments, itemA);
+        var assignmentOfItemB = findItemAssignment(assignments, itemB);
 
-        if(routeOfCityA == null && routeOfCityB == null)
+        if(assignmentOfItemA == null && assignmentOfItemB == null)
         {
-            var weight = vertices[cityA].weight + vertices[cityB].weight;
+            var weight = items[itemA].weight + items[itemB].weight;
 
             if(weight <= robotCapacity)
             {
-                routes.push(
+                assignments.push(
                     {
-                        cities : [cityA, cityB],
+                        items : [itemA, itemB],
                         weight : weight
                     }
                 )
 
-                removeFromUnused(cityA, verticesUnused);
-                removeFromUnused(cityB, verticesUnused);
+                removeFromUnused(itemA, itemsUnused);
+                removeFromUnused(itemB, itemsUnused);
             }
         }
         else 
         {
-            if(routeOfCityA == null)
+            if(assignmentOfItemA == null)
             {
-                var tempCity = cityA;
+                var tempItem = itemA;
                 
-                routeOfCityA = routeOfCityB;
-                cityA = cityB;
+                assignmentOfItemA = assignmentOfItemB;
+                itemA = itemB;
 
-                cityB = tempCity;
-                routeOfCityB = {
-                    cities : [cityB],
-                    weight : vertices[cityB].weight
+                itemB = tempItem;
+                assignmentOfItemB = {
+                    items : [itemB],
+                    weight : items[itemB].weight
                 }
             }
-            else if(routeOfCityB == null)
+            else if(assignmentOfItemB == null)
             {
-                routeOfCityB = {
-                    cities : [cityB],
-                    weight : vertices[cityB].weight
+                assignmentOfItemB = {
+                    items : [itemB],
+                    weight : items[itemB].weight
                 }
             }
 
-            if(routeOfCityA != routeOfCityB && routeOfCityA.weight + routeOfCityB.weight <= robotCapacity)
+            if(assignmentOfItemA != assignmentOfItemB && assignmentOfItemA.weight + assignmentOfItemB.weight <= robotCapacity)
             {
-                if(isAtTheEdgeOfRoute(cityA, routeOfCityA) && isAtTheEdgeOfRoute(cityB, routeOfCityB))
+                if(isAtTheEdgeOfAssignment(itemA, assignmentOfItemA) && isAtTheEdgeOfAssignment(itemB, assignmentOfItemB))
                 {
-                    if(routeOfCityA.cities.indexOf(cityA) == 0)
+                    if(assignmentOfItemA.items.indexOf(itemA) == 0)
                     {
-                        routeOfCityA.cities.reverse();
+                        assignmentOfItemA.items.reverse();
                     }
 
-                    if(routeOfCityB.cities.indexOf(cityB) != 0)
+                    if(assignmentOfItemB.items.indexOf(itemB) != 0)
                     {
-                        routeOfCityB.cities.reverse();
+                        assignmentOfItemB.items.reverse();
                     }
 
-                    routeOfCityA.cities = routeOfCityA.cities.concat(routeOfCityB.cities);
-                    routeOfCityA.weight += routeOfCityB.weight;
+                    assignmentOfItemA.items = assignmentOfItemA.items.concat(assignmentOfItemB.items);
+                    assignmentOfItemA.weight += assignmentOfItemB.weight;
 
-                    //console.log(routeOfCityA.cities)
+                    //console.log(routeOfCityA.items)
 
-                    var index = routes.indexOf(routeOfCityB);
+                    var index = assignments.indexOf(assignmentOfItemB);
                     if(index != -1)
-                        routes.splice(index, 1);
+                        assignments.splice(index, 1);
 
-                    removeFromUnused(cityB, verticesUnused);
+                    removeFromUnused(itemB, itemsUnused);
                 }
             }
         }
     }
 
-    function findCityRoute(routes, city)
+    function findItemAssignment(assignments, item)
     {
-        for(var i = 0; i < routes.length; i++)
+        for(var i = 0; i < assignments.length; i++)
         {
-            if(routes[i].cities.indexOf(city) != -1)
+            if(assignments[i].items.indexOf(item) != -1)
             {
-                return routes[i];
+                return assignments[i];
             }
         }
 
         return null;
     }
-    function isAtTheEdgeOfRoute(city, route)
+    function isAtTheEdgeOfAssignment(item, assignment)
     {
-        var index = route.cities.indexOf(city);
-        return index == 0 || index == route.cities.length - 1;
+        var index = assignment.items.indexOf(item);
+        return index == 0 || index == assignment.items.length - 1;
     }
-    function removeFromUnused(city, unusedVertices)
+    function removeFromUnused(item, itemsUnused)
     {
-        var index = unusedVertices.indexOf(city);
-        unusedVertices.splice(index, 1);
+        var index = itemsUnused.indexOf(item);
+        itemsUnused.splice(index, 1);
     }
 
-    for(var i = 0; i < verticesUnused.length; i++)
+    for(var i = 0; i < itemsUnused.length; i++)
     {
-        var index = verticesUnused[i];
+        var index = itemsUnused[i];
 
-        routes.push(
+        assignments.push
+        (
             {
-                cities : [index],
-                weight : vertices[index].weight
+                items : [index],
+                weight : items[index].weight
             }
         )        
     }
 
-    return routes;
+    for(var i = 0; i < assignments.length; i++)
+    {
+        for(var j = 0; j < assignments[i].items.length; j++)
+        {
+            assignments[i].items[j] = items[assignments[i].items[j]];
+        }
+    }
+
+    return assignments;
 }

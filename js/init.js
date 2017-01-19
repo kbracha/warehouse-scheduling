@@ -31,51 +31,8 @@ $(document).ready(function()
 
     items = createItemSources(ItemTypes.length);
 
-    var orderItems = order.getItems();
-    orderItems.push({
-        itemType : Headphones,
-        quantity : 1
-    })
-
-    orderItems.push({
-        itemType : Pad,
-        quantity : 3
-    })
-
-    orderItems.push({
-        itemType : Toothbrush,
-        quantity : 3
-    })
-
-    console.log("--- order items -- ")
-    console.log(orderItems);
-    console.log("-----");
-
-    var vertices = []
-    for(var i = 0; i < orderItems.length; i++)
-    {
-        console.log(getItemSource(orderItems[i].itemType))
-        var itemSource = getItemSource(orderItems[i].itemType);
-        var itemToOrder = new orderItems[i].itemType();
-        itemToOrder.x = itemSource.x;
-        itemToOrder.y = itemSource.y;
-        itemToOrder.weight = itemToOrder.weight * orderItems[i].quantity;
-        console.log(itemToOrder.weight)
-        vertices.push(itemToOrder);
-    }
-    var depot = {
-        x : 23,
-        y : 33
-    }
-
-    var routes = clarkeWrightSavings(depot, vertices, 50);
-    console.log(routes);
-
-    var itemDummies = order.createItemDummies(getItemSource);
-    console.log(itemDummies);
-    var routes2 = clarkeWrightSavings(depot, itemDummies, 50);
-
-    console.log(routes2);
+    var orderItems = order.createItems(getItemSource);
+    var routes2 = clarkeWrightSavings(depot, orderItems, 50);
     
     $("#simulation").focus();
     bindControls();
@@ -89,17 +46,11 @@ $(document).ready(function()
         manager.add(robot);
         robots.push(robot); 
 
-        var mark = robot.createMark(23 + i, 33);
-
-        manager.add(mark);
-
         var itenz = []
-        for(var j = 0; j < routes2[i].cities.length; j++)
+        for(var j = 0; j < routes2[i].items.length; j++)
         {
-            itenz.push(itemDummies[routes2[i].cities[j]]);
+            itenz.push(routes2[i].items[j]);
         }
-
-        console.log(itenz);
 
         assignItemsToRobot(robot, itenz);
     }
@@ -109,7 +60,7 @@ $(document).ready(function()
     for(var i = 0; i < robots.length; i++)
     {
         $("#selRobots").append($("<option></option>")
-                    .attr("value",robots[i])
+                    .data("robot",robots[i])
                     .text(robots[i].name)); 
     }
 
@@ -166,7 +117,9 @@ var assignItemsToRobot = function(robot, items)
 {
     for(var i = 0; i < items.length; i++)
     {
-       robot.addJob2(new GoNextToDestinationJob(items[i]))
+       robot.addJob(new GoNextToDestinationJob(items[i]))
+       robot.addJob(new FaceObjectJob(items[i]));
+       robot.addJob(new CollectItemJob(items[i]));
     }   
 
     var robotLocation = 
@@ -175,7 +128,7 @@ var assignItemsToRobot = function(robot, items)
         y : robot.y
     }    
 
-    robot.addJob2(new GoToDestinationJob(robotLocation)) 
+    robot.addJob(new GoToDestinationJob(robotLocation)) 
 }
 
 var displayAllRouteMarks = function()
@@ -227,18 +180,10 @@ var simulate = function()
         {
             frames = 0;
 
-            var stillWorking = false;
-
             for(var i = 0; i < robots.length; i ++)
             {
-                if(robots[i].makeAction2())
-                {
-                    stillWorking = true;
-                }
+                robots[i].makeAction()
             }
-
-            //if(stillWorking == false)
-            //    return;
         }
     }
 
@@ -441,6 +386,12 @@ var bindControls = function()
     $("#btnClearAllMarks").click(function(e)
     {
         clearAllRouteMarks();
+    });
+
+    $("#btnDisplayMarks").click(function(e)
+    {
+        var robot = $("#selRobots").find(":selected").data("robot");
+        displayRouteMarks(robot);
     });
 }
 
