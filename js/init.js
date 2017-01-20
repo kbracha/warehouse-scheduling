@@ -1,117 +1,53 @@
 
+var graphicsManager;
 var manager;
 
 var robotInit;
 var running = false;
 
 var shelfVertices = []
-
 var robotsCount = 10;
-var itemsPerRobotCount = 3;
+
+var orders = []
+var robots = []
+var items = []
 
 $(document).ready(function()
 {
-    manager = new Manager($("#simulation"));
+    graphicsManager = new GraphicsManager($("#simulation"));
     
-    buildWarehouse(warehouseScheme, manager);
+    buildWarehouse(warehouseScheme, graphicsManager);
 
-    // for testing travelling salesman
-    shelfVertices = manager.getObjects(Shelf);
-
-    var order = new Order();
-    order.add(Toothbrush, 2);
-    order.add(Toothbrush, 5);
-
-    order.add(Flashlight, 3);
-    order.add(Glass, 10);
-    order.add(Pad, 2);
-    order.add(Headphones, 1);
-
-    console.log(order.getWeight());
-
-    items = createItemSources(ItemTypes.length);
-
-    var orderItems = order.createItems(getItemSource);
-    var routes2 = clarkeWrightSavings(depot, orderItems, 50);
-    
-    $("#simulation").focus();
-    bindControls();
-
-    for(var i = 0; i < routes2.length; i++)
+    for(var i = 0; i < robotsCount; i++)
     {
         var robot = new Robot();
         robot.x = 23 + i;
         robot.y = 33;
 
-        manager.add(robot);
+        graphicsManager.add(robot);
         robots.push(robot); 
+    }
 
-        var itenz = []
-        for(var j = 0; j < routes2[i].items.length; j++)
+    var depot = { x : 23 + Math.floor(robotsCount/2), y : 33 }
+
+    manager = new WarehouseManager(depot, robots);
+
+    items = createItemSources(ItemTypes.length);
+
+    $.ajax({
+        url: "./data/orders.json",
+        success: function (data)
         {
-            itenz.push(routes2[i].items[j]);
+            parseOrderData(data.orderData);
         }
+    });
 
-        assignItemsToRobot(robot, itenz);
-    }
-
-    displayAllRouteMarks();
-    
-    for(var i = 0; i < robots.length; i++)
-    {
-        $("#selRobots").append($("<option></option>")
-                    .data("robot",robots[i])
-                    .text(robots[i].name)); 
-    }
-
-    //setup();
+    $("#simulation").focus();
+    bindControls();
 
     requestAnimationFrame(simulate);
-    
 });
 
-var node = null;
-var order;
-var orderIndex;
-var robot;
-var robots = []
-var items = []
-
-
-var setup = function()
-{
-    for(var i = 0; i < items.length; i++)
-    {
-        manager.remove(items[i]);
-    }
-
-    for(var i = 0; i < robots.length; i++)
-    {
-        robots[i].jobQueue = []
-    }
-
-    items = createItems(5);
-
-    var assignments = vrpBranchAndBound(items, robots);
-
-    console.log(assignments);
-
-    for(var i = 0; i < assignments.length; i++)
-    {
-        for(var j = 0; j < assignments[i].items.length; j++)
-        {
-           assignments[i].robot.addJob2(new GoNextToDestinationJob(assignments[i].items[j]))
-        }
-
-        var robotLocation = 
-        {
-            x : assignments[i].robot.x,
-            y : assignments[i].robot.y
-        }
-    
-        assignments[i].robot.addJob2(new GoToDestinationJob(robotLocation))        
-    }
-}
 
 var assignItemsToRobot = function(robot, items)
 {
@@ -141,11 +77,11 @@ var displayAllRouteMarks = function()
 
 var clearAllRouteMarks = function()
 {
-    var marks = manager.getObjects(Mark);
+    var marks = graphicsManager.getObjects(Mark);
 
     for(var i = 0; i < marks.length; i++)
     {
-        manager.remove(marks[i]);
+        graphicsManager.remove(marks[i]);
     }
 }
 
@@ -155,7 +91,7 @@ var displayRouteMarks = function(robot)
 
     for(var j = 0; j < marks.length; j++)
     {
-        manager.add(marks[j]);
+        graphicsManager.add(marks[j]);
     }      
 }
 
@@ -180,6 +116,8 @@ var simulate = function()
         {
             frames = 0;
 
+            manager.makeAction();
+
             for(var i = 0; i < robots.length; i ++)
             {
                 robots[i].makeAction()
@@ -193,6 +131,7 @@ var simulate = function()
 
 var createItemSources = function(count)
 {
+    var shelfVertices = graphicsManager.getObjects(Shelf);
     Math.seedrandom('test');
     
     var items = []
@@ -207,7 +146,7 @@ var createItemSources = function(count)
         item.y = randshelf.y; 
         
         items.push(item);
-        manager.add(item);
+        graphicsManager.add(item);
     }
 
     return items;
@@ -288,23 +227,23 @@ var bindControls = function()
         
         if(val == "1x")
         {
-            manager.setScale(10);
+            graphicsManager.setScale(10);
         }
         else if(val == "2x")
         {
-            manager.setScale(20);
+            graphicsManager.setScale(20);
         }
         else if(val == "4x")
         {
-            manager.setScale(40);
+            graphicsManager.setScale(40);
         }
         else if(val == "8x")
         {
-            manager.setScale(80);
+            graphicsManager.setScale(80);
         }
         else if(val == "16x")
         {
-            manager.setScale(160);
+            graphicsManager.setScale(160);
         }
 
         console.log(framesPerAction)
@@ -323,7 +262,7 @@ var bindControls = function()
         var relX = e.pageX - simOffset.left;
         var relY = e.pageY - simOffset.top;
 
-        var scale = manager.getScaleX();
+        var scale = graphicsManager.getScaleX();
         var action = 0;
 
         if (e.originalEvent.wheelDelta > 0 || e.originalEvent.detail < 0) 
@@ -353,7 +292,7 @@ var bindControls = function()
 
             var scrTop = $("#simulation").scrollTop()
             var scrLeft = $("#simulation").scrollLeft()
-            manager.setScale(val);
+            graphicsManager.setScale(val);
 
             if(action == 2)
             {
@@ -393,5 +332,33 @@ var bindControls = function()
         var robot = $("#selRobots").find(":selected").data("robot");
         displayRouteMarks(robot);
     });
+
+    for(var i = 0; i < robots.length; i++)
+    {
+        $("#selRobots").append($("<option></option>")
+                    .data("robot",robots[i])
+                    .text(robots[i].name)); 
+    }
+
+    $("#btnCheckOrders").click(function(e)
+    {
+        manager.handleAwaitingOrders();
+        manager.handleAwaitingAssignments();
+        console.log("test")
+    });
 }
 
+var parseOrderData = function(orderData)
+{
+    for(var i = 0; i < orderData.length; i++)
+    {
+        var order = new Order();
+
+        for(var j = 0; j < orderData[i].items.length; j++)
+        {
+            order.add(window[orderData[i].items[j].name], orderData[i].items[j].quantity);
+        }
+
+        manager.acknowledgeOrder(order);
+    }
+}

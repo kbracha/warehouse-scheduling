@@ -8,92 +8,90 @@ var Item = function()
     this.background = "transparent";
     this.zIndex = 3;
 
-    this.weight = 5;
-
     this.forOrder = null;
 }
-
 extend(Item, StaticObject);
+Item.prototype.weight = 5;
 
 var CoffeMachine = function()
 {
     Item.apply(this);
     this.setSpritePath("img/coffee-machine")
 }
-CoffeMachine.prototype.weight = 50;
 extend(CoffeMachine, Item);
+CoffeMachine.prototype.weight = 50;
 
 var Bone = function()
 {
     Item.apply(this);
     this.setSpritePath("img/bone")
 }
-Bone.prototype.weight = 8;
 extend(Bone, Item);
+Bone.prototype.weight = 8;
 
 var Book = function()
 {
     Item.apply(this);
     this.setSpritePath("img/book")
 }
-Book.prototype.weight = 30;
 extend(Book, Item);
+Book.prototype.weight = 30;
 
 var CD = function()
 {
     Item.apply(this);
     this.setSpritePath("img/cd")
 }
-CD.prototype.weight = 3;
 extend(CD, Item);
+CD.prototype.weight = 3;
 
 var Drill = function()
 {
     Item.apply(this);
     this.setSpritePath("img/drill")
 }
-Drill.prototype.weight = 45;
 extend(Drill, Item);
+Drill.prototype.weight = 45;
 
 var Flashlight = function()
 {
     Item.apply(this);
     this.setSpritePath("img/flashlight")
 }
-Flashlight.prototype.weight = 10;
 extend(Flashlight, Item);
+Flashlight.prototype.weight = 10;
 
 var Glass = function()
 {
     Item.apply(this);
     this.setSpritePath("img/glass")
 }
-Glass.prototype.weight = 5;
 extend(Glass, Item);
+Glass.prototype.weight = 5;
 
 var Headphones = function()
 {
     Item.apply(this);
     this.setSpritePath("img/headphones")
 }
-Headphones.prototype.weight = 15;
 extend(Headphones, Item);
+Headphones.prototype.weight = 15;
 
 var Pad = function()
 {
     Item.apply(this);
     this.setSpritePath("img/pad")
 }
-Pad.prototype.weight = 20;
 extend(Pad, Item);
+Pad.prototype.weight = 20;
 
 var Toothbrush = function()
 {
     Item.apply(this);
     this.setSpritePath("img/toothbrush")
 }
-Toothbrush.prototype.weight = 2;
 extend(Toothbrush, Item);
+Toothbrush.prototype.weight = 2;
 
 var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headphones, Pad, Toothbrush]
 
@@ -101,7 +99,8 @@ var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headpho
 
 var Order = function()
 {
-    this.items = [];
+    this.items = {};
+    this.assigned = false;
 }
 
 

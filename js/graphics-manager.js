@@ -1,5 +1,5 @@
 
-var Manager = function(canvas)
+var GraphicsManager = function(canvas)
 {
     this.objects = createArray(50, 50)
     for(var i = 0; i < 50; i++)
@@ -19,18 +19,15 @@ var Manager = function(canvas)
     this.canvas = canvas;
 }
 
-Manager.prototype.add = function(object)
+GraphicsManager.prototype.add = function(object)
 {
-    //if(this.objects.indexOf(object) == -1)
-    //{
-        this.objects[object.x][object.y].push(object);
-        $(object).css("display","none");
-        $(this.canvas).append(object.canvas);
-        this.draw(object);
-    //}
+    this.objects[object.x][object.y].push(object);
+    $(object).css("display","none");
+    $(this.canvas).append(object.canvas);
+    this.draw(object);
 }
 
-Manager.prototype.remove = function(object)
+GraphicsManager.prototype.remove = function(object)
 {
     var index = this.objects[object.x][object.y].indexOf(object);
     if(index != -1)
@@ -40,19 +37,19 @@ Manager.prototype.remove = function(object)
     }
 }
 
-Manager.prototype.setScale = function(scale)
+GraphicsManager.prototype.setScale = function(scale)
 {
     this.scaleX = scale;
     this.scaleY = scale;    
     this.redraw();
 }
 
-Manager.prototype.getScaleX = function()
+GraphicsManager.prototype.getScaleX = function()
 {
     return this.scaleX;
 }
 
-Manager.prototype.redraw = function()
+GraphicsManager.prototype.redraw = function()
 {
     for(var i = 0; i < 50; i++)
     {
@@ -67,7 +64,7 @@ Manager.prototype.redraw = function()
     }
 }
 
-Manager.prototype.draw = function(object)
+GraphicsManager.prototype.draw = function(object)
 {
     $(object.canvas).css({
         display: "block",
@@ -82,7 +79,7 @@ Manager.prototype.draw = function(object)
     });
 }
 
-Manager.prototype.placeAt = function(object, x, y, offX, offY)
+GraphicsManager.prototype.placeAt = function(object, x, y, offX, offY)
 {
     var index = this.objects[object.x][object.y].indexOf(object);
     this.objects[object.x][object.y].splice(index, 1);
@@ -113,7 +110,7 @@ Manager.prototype.placeAt = function(object, x, y, offX, offY)
     this.draw(object);
 }
 
-Manager.prototype.canPlaceAt = function(object, x, y)
+GraphicsManager.prototype.canPlaceAt = function(object, x, y)
 {
     if(object.collides === false)
         return true;
@@ -133,7 +130,7 @@ Manager.prototype.canPlaceAt = function(object, x, y)
     return true;
 }
 
-Manager.prototype.getObjectAt = function(classType, x, y)
+GraphicsManager.prototype.getObjectAt = function(classType, x, y)
 {   
     var objects = this.objects[x][y];
 
@@ -148,7 +145,7 @@ Manager.prototype.getObjectAt = function(classType, x, y)
     return null;
 }
 
-Manager.prototype.getObjects = function(classType)
+GraphicsManager.prototype.getObjects = function(classType)
 {
     var objects = []
 
@@ -170,12 +167,12 @@ Manager.prototype.getObjects = function(classType)
     return objects;
 }
 
-Manager.prototype.getObjectsAt = function(x, y)
+GraphicsManager.prototype.getObjectsAt = function(x, y)
 {
     return this.objects[x][y];   
 }
 
-Manager.prototype.getChessboardDistance = function(objectA, objectB)
+GraphicsManager.prototype.getChessboardDistance = function(objectA, objectB)
 {
     return chessboardDistance(objectA, objectB);
 }   

@@ -21,7 +21,7 @@ var Robot = function()
     this.width = 1;
     this.height = 1.5;
 
-    this.name = robotNames[Robot.count];
+    this.name = Robot.Names[Robot.count];
     Robot.count += 1;
 
     this.backpack = [];
@@ -31,6 +31,7 @@ var Robot = function()
 extend(Robot, MobileObject);
 
 Robot.count = 0;
+Robot.capacity = 50;
 
 Robot.prototype.addJob = function(job)
 {
@@ -224,7 +225,19 @@ Robot.prototype.returnItemsCollected = function()
     return this.backpack;
 }
 
-var robotNames = ["Andy", "Ben", "Chris", "Dean", "Ernie", "Frank", "Greg", "Ian", "John"]
+Robot.prototype.isBusy = function()
+{
+    if(this.jobQueue.length == 0)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+Robot.Names = ["Andy", "Ben", "Chris", "Dean", "Ernie", "Frank", "Greg", "Ian", "John", "Keith", "Lee", "Max", "Nick", "Ollie"]
 
 
 var Mark = function(character, x , y)

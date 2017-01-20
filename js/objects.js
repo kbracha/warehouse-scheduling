@@ -45,12 +45,12 @@ StaticObject.prototype.isInstanceOf = function(className)
 
 StaticObject.prototype.draw = function()
 {
-    manager.draw(this);
+    graphicsManager.draw(this);
 }
 
 StaticObject.prototype.move = function(x, y)
 {
-    manager.placeAt(this, x, y)
+    graphicsManager.placeAt(this, x, y)
 }
 
 StaticObject.prototype.faceDirection = function(direction)
@@ -61,7 +61,7 @@ StaticObject.prototype.faceDirection = function(direction)
 
 StaticObject.prototype.canMove = function(x, y)
 {
-    return manager.canPlaceAt(this, x , y);
+    return graphicsManager.canPlaceAt(this, x , y);
 }
 
 StaticObject.prototype.getClass = function()
@@ -128,7 +128,7 @@ MobileObject.prototype.move = function(x, y)
 
     this.isMoving = true;
 
-    manager.placeAt(this, x, y, -1 * xChange, -1 * yChange)
+    graphicsManager.placeAt(this, x, y, -1 * xChange, -1 * yChange)
 
     if(this.direction != direction)
     {
@@ -163,7 +163,7 @@ MobileObject.prototype.continueMove = function()
         offY = -offValue + 1;
     }
 
-    manager.placeAt(this, this.x, this.y, offX, offY)
+    graphicsManager.placeAt(this, this.x, this.y, offX, offY)
     
     var spriteName = this.direction;
     if(this.currentMoveIteration != this.iterationsPerMove)
@@ -182,7 +182,7 @@ MobileObject.prototype.continueMove = function()
 
 MobileObject.prototype.getDistance = function(object)
 {
-    return manager.getChessboardDistance(this, object);
+    return graphicsManager.getChessboardDistance(this, object);
 }
 
 

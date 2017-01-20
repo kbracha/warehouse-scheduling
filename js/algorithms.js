@@ -84,7 +84,7 @@ Node.prototype = new StaticObject();
 // because colliding mobileobjects might move and free the space
 var canPossiblyMoveAt = function(hunter, x, y)
 {
-    var objects = manager.getObjectsAt(x, y);
+    var objects = graphicsManager.getObjectsAt(x, y);
 
     for(var i = 0; i < objects.length; i++)
     {
@@ -781,13 +781,11 @@ var orderMatrixSavings = function(matrix)
     return orderedSavings;
 }
 
+var calculateSavingsDummy = {x: -10, y: -10}
 var calculateSavings = function(depot, verticeA, verticeB)
 {
-    //return aStarSearchTo(depot, verticeA).cost + aStarSearchTo(depot, verticeB).cost - aStarSearchTo(verticeA, verticeB).cost;
-    //console.log(chessboardDistance(depot, verticeA));
-    //console.log(chessboardDistance(depot, verticeB));
-    //console.log(chessboardDistance(verticeA, verticeB));
-    return euclidianDistance(depot, verticeA) + euclidianDistance(depot, verticeB) - euclidianDistance(verticeA, verticeB);
+    // set a dummy as a hunter to ensure that aStarSearch always finds a path
+    return aStarSearchTo(depot, verticeA, calculateSavingsDummy).cost + aStarSearchTo(depot, verticeB, calculateSavingsDummy).cost - aStarSearchTo(verticeA, verticeB, calculateSavingsDummy).cost;
 }
 
 
@@ -808,7 +806,7 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
     }
     var assignments = [];
 
-    for(var j = 0; j < orderedSavings.length; j++)
+    for(var j = 0; j < orderedSavings.length && itemsUnused.length > 0; j++)
     {
         var assignment = orderedSavings[j];
         var itemA = assignment.cityA;
