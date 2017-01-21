@@ -31,14 +31,16 @@ $(document).ready(function()
     var depot = { x : 23 + Math.floor(robotsCount/2), y : 33 }
 
     manager = new WarehouseManager(depot, robots);
+    manager.ordersUpdated = updateOrdersInfo;
 
     items = createItemSources(ItemTypes.length);
 
     $.ajax({
-        url: "./data/orders.json",
+        url: "./php/orders.php",
+        dataType: "json",
         success: function (data)
         {
-            parseOrderData(data.orderData);
+            populateOrderList(data);
         }
     });
 
@@ -48,24 +50,6 @@ $(document).ready(function()
     requestAnimationFrame(simulate);
 });
 
-
-var assignItemsToRobot = function(robot, items)
-{
-    for(var i = 0; i < items.length; i++)
-    {
-       robot.addJob(new GoNextToDestinationJob(items[i]))
-       robot.addJob(new FaceObjectJob(items[i]));
-       robot.addJob(new CollectItemJob(items[i]));
-    }   
-
-    var robotLocation = 
-    {
-        x : robot.x,
-        y : robot.y
-    }    
-
-    robot.addJob(new GoToDestinationJob(robotLocation)) 
-}
 
 var displayAllRouteMarks = function()
 {
@@ -344,7 +328,18 @@ var bindControls = function()
     {
         manager.handleAwaitingOrders();
         manager.handleAwaitingAssignments();
-        console.log("test")
+    });
+
+    $("#btnAddOrder").click(function(e)
+    {
+        var filename = $("#selOrders").val();
+        $.ajax({
+            url: "./data/" + filename,
+            success: function (data)
+            {
+                parseOrderData(data.orderData);
+            }
+        });
     });
 }
 
@@ -359,6 +354,81 @@ var parseOrderData = function(orderData)
             order.add(window[orderData[i].items[j].name], orderData[i].items[j].quantity);
         }
 
+        order.finalize(getItemSource);
+
         manager.acknowledgeOrder(order);
+    }
+}
+
+var populateOrderList = function(data)
+{
+    for(var i = 0; i < data.length - 1; i++)
+    {
+         $("#selOrders").append($("<option></option>")
+                    .val(data[i])
+                    .text(data[i]));        
+    }
+}
+
+var updateOrdersInfo = function()
+{
+    $("#awaitingOrders").empty();
+
+    var awaitingOrders = manager.awaitingOrders;
+    for(var i = 0; i < awaitingOrders.length; i++)
+    {
+         $("#awaitingOrders").append("<b>Order #" + i + "</b><br>");
+         var itemsInfo = awaitingOrders[i].getItemsInfo();
+         
+         for(var key in itemsInfo)
+         {
+             $("#awaitingOrders").append("&nbsp;&nbsp;-" + itemsInfo[key].itemType.name + " x " + itemsInfo[key].quantity + "<br>");
+         }
+    }
+
+     $("#pendingOrders").empty();
+
+    var pendingOrders = manager.pendingOrders;
+    for(var i = 0; i < pendingOrders.length; i++)
+    {
+         $("#pendingOrders").append("<b>Order #" + i + "</b><br>");
+         var items = pendingOrders[i].getItems();
+         
+         for(var j = 0; j < items.length; j++)
+         {
+             var status;
+             var picker = items[j].picker;
+             if(picker != null)
+             {
+                 if(items[j].delivered == true)
+                 {
+                     status = "delivered by " + picker.name;
+                 }
+                 else
+                 {
+                    status = "fetched by " + picker.name;
+                 }    
+             }
+             else
+             {
+                 status = "waiting for assignment";
+             }
+
+             $("#pendingOrders").append("&nbsp;&nbsp;-" + items[j].getClass() + " : " + status + "<br>");
+         }        
+    }
+
+    $("#completedOrders").empty();
+
+    var completedOrders = manager.completedOrders;
+    for(var i = 0; i < completedOrders.length; i++)
+    {
+         $("#completedOrders").append("<b>Order #" + i + "</b><br>");
+         var items = completedOrders[i].getItems();
+         
+         for(var j = 0; j < items.length; j++)
+         {
+             $("#completedOrders").append("&nbsp;&nbsp;-" + items[j].getClass() + " : delivered by " + items[j].picker.name + "<br>");
+         }        
     }
 }

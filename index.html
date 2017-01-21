@@ -46,12 +46,23 @@ Zoom:
     <option>16x</option>
 </select>
 </div>
-<div class="sidebar">
+<div class="sidebar" style="overflow: auto">
     <button id="btnDisplayAllMarks" class="btn btn-default">Display All Marks</button>
     <button id="btnClearAllMarks" class="btn btn-default">Clear Marks</button><br><br>
     Robot: <select  class="form-control" id="selRobots"></select>
     <button id="btnDisplayMarks" class="btn btn-default">Display Marks</button><br><br>
     Manager: <button id="btnCheckOrders" class="btn btn-default">Check Orders</button><br><br>
+    Orders: <select  class="form-control" id="selOrders"></select>
+    <button id="btnAddOrder" class="btn btn-default">Add order</button><br><br>
+    Awaiting orders:
+    <div id="awaitingOrders" style="border: 1px solid black; height: 150px; overflow: auto;" >    
+    </div>
+    Pending orders:
+    <div id="pendingOrders" style="border: 1px solid black; height: 150px; overflow: auto;">
+    </div>
+    Completed orders:
+    <div id="completedOrders" style="border: 1px solid black; height: 150px; overflow: auto;">
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>

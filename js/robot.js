@@ -25,6 +25,8 @@ var Robot = function()
     Robot.count += 1;
 
     this.backpack = [];
+
+    this.itemDelivered = null;
 }
 
 
@@ -70,6 +72,10 @@ Robot.prototype.makeAction = function()
     else if(job instanceof CollectItemJob)
     {
         this.handleCollectItemJob(job);
+    }
+    else if(job instanceof DeliverItemJob)
+    {
+        this.handleDeliverItemJob(job);
     }
 }
 
@@ -159,13 +165,21 @@ Robot.prototype.handleCollectItemJob = function(job)
     this.completeJob();
 }
 
+Robot.prototype.handleDeliverItemJob = function(job)
+{
+    var index = this.backpack.indexOf(job.item);
+    this.backpack.splice(index, 1);
+
+    this.raiseEvent(this.itemDelivered, job.item);
+
+    this.completeJob();
+}
 
 Robot.prototype.completeJob = function()
 {
     this.jobQueue.splice(0, 1);
     this.jobData = {};
 }
-//Robot.prototype.
 
 Robot.prototype.createMark = function(x, y)
 {
@@ -234,6 +248,18 @@ Robot.prototype.isBusy = function()
     else
     {
         return true;
+    }
+}
+
+Robot.prototype.raiseEvent = function(event)
+{
+    console.log("delv")
+    if(event != null)
+    {
+        if (arguments.length == 1)
+            event();
+        else if (arguments.length == 2)
+            event(arguments[1]);
     }
 }
 

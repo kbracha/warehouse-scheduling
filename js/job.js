@@ -21,3 +21,8 @@ var CollectItemJob = function(item)
 {
     this.item = item;
 }
+
+var DeliverItemJob = function(item)
+{
+    this.item = item;
+}

@@ -777,7 +777,6 @@ var orderMatrixSavings = function(matrix)
         return savingB.value - savingA.value;
     });
 
-    //console.log(orderedSavings);
     return orderedSavings;
 }
 
@@ -874,6 +873,7 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
                     //console.log(routeOfCityA.items)
 
                     var index = assignments.indexOf(assignmentOfItemB);
+                    console.log(index)
                     if(index != -1)
                         assignments.splice(index, 1);
 
@@ -903,8 +903,12 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
     function removeFromUnused(item, itemsUnused)
     {
         var index = itemsUnused.indexOf(item);
-        itemsUnused.splice(index, 1);
+
+        if(index != -1)
+            itemsUnused.splice(index, 1);
     }
+
+    console.log(assignments);
 
     for(var i = 0; i < itemsUnused.length; i++)
     {

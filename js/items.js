@@ -8,7 +8,9 @@ var Item = function()
     this.background = "transparent";
     this.zIndex = 3;
 
-    this.forOrder = null;
+    this.order = null;
+    this.picker = null;
+    this.delivered = false;
 }
 extend(Item, StaticObject);
 Item.prototype.weight = 5;
@@ -99,69 +101,79 @@ var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headpho
 
 var Order = function()
 {
-    this.items = {};
+    this.itemsInfo = {};
+    this.items = [];
     this.assigned = false;
 }
 
 
 Order.prototype.add = function(itemType, quantity)
 {
-    if(!(itemType in this.items))
+    if(!(itemType in this.itemsInfo))
     {
-        this.items[itemType] = {
+        this.itemsInfo[itemType] = {
             quantity : 0,
             itemType: itemType // create a link because when iterating over keys in items the key reference doesn't work
         }
     }
 
-    this.items[itemType].quantity += quantity;
+    this.itemsInfo[itemType].quantity += quantity;
 }
 
 Order.prototype.getWeight = function()
 {
     var weight = 0;
 
-    for(var key in this.items)
+    for(var key in this.itemsInfo)
     {
-        weight += this.items[key].quantity * this.items[key].itemType.prototype.weight;
+        weight += this.itemsInfo[key].quantity * this.itemsInfo[key].itemType.prototype.weight;
     }
 
     return weight;
 }
 
-Order.prototype.createItems = function(getItemSourceFunction)
+Order.prototype.getCount = function()
 {
-    var items = [];
+    var count = 0;
 
-    for(var key in this.items)
+    for(var key in this.itemsInfo)
     {
-        var itemSource = getItemSourceFunction(this.items[key].itemType);
+        count += this.itemsInfo[key].quantity;
+    }
 
-        for(var i = 0; i < this.items[key].quantity; i++)
+    return count;
+}
+
+Order.prototype.finalize = function(getItemSourceFunction)
+{
+    this.items = [];
+
+    for(var key in this.itemsInfo)
+    {
+        var itemSource = getItemSourceFunction(this.itemsInfo[key].itemType);
+
+        for(var i = 0; i < this.itemsInfo[key].quantity; i++)
         {
-            var item = new this.items[key].itemType();
+            var item = new this.itemsInfo[key].itemType();
 
             item.x = itemSource.x;
             item.y = itemSource.y;
-            item.forOrder = this;
+            item.order = this;
 
-            items.push(item);
+            this.items.push(item);
         }
     }
     
-    return items;    
+    return this.items;    
 }
 
-/*
 Order.prototype.getItems = function()
 {
-    var items = []
-
-    for(var key in this.items)
-    {
-        items.push(this.items[key]);
-    }
-    
-    return items;
+    return this.items;
 }
-*/
+
+Order.prototype.getItemsInfo = function()
+{
+    return this.itemsInfo;
+}
+
