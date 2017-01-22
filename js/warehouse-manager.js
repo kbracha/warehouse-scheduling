@@ -119,6 +119,7 @@ WarehouseManager.prototype.assignItemsToRobot = function(robot, items)
     robot.addJob(new GoToDestinationJob(robotLocation)) 
     for(var i = 0; i < items.length; i++)
     {
+        robot.addJob(new FaceObjectJob(robot.depot));
         robot.addJob(new DeliverItemJob(items[i]));
     }  
 }

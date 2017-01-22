@@ -91,7 +91,6 @@ StaticObject.prototype.setSprite = function(fullPath)
     $(this.sprite).css("background-repeat", "no-repeat")       
 }
 
-
 var MobileObject = function()
 {
     StaticObject.apply(this);

@@ -136,7 +136,7 @@ GraphicsManager.prototype.getObjectAt = function(classType, x, y)
 
     for(var i = 0; i < objects.length; i++)
     {
-        if(objects[i] instanceof classType)
+        if(objects[i].isInstanceOf(classType))
         {
             return objects[i];
         }

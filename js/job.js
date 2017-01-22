@@ -26,3 +26,7 @@ var DeliverItemJob = function(item)
 {
     this.item = item;
 }
+
+var BringItemsJob = function()
+{
+}

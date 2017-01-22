@@ -25,6 +25,7 @@ var Robot = function()
     Robot.count += 1;
 
     this.backpack = [];
+    this.depot = {x : -1, y : -1};
 
     this.itemDelivered = null;
 }
@@ -167,8 +168,7 @@ Robot.prototype.handleCollectItemJob = function(job)
 
 Robot.prototype.handleDeliverItemJob = function(job)
 {
-    var index = this.backpack.indexOf(job.item);
-    this.backpack.splice(index, 1);
+    this.dropItem(job.item, this.depot.x, this.depot.y);
 
     this.raiseEvent(this.itemDelivered, job.item);
 
@@ -253,7 +253,6 @@ Robot.prototype.isBusy = function()
 
 Robot.prototype.raiseEvent = function(event)
 {
-    console.log("delv")
     if(event != null)
     {
         if (arguments.length == 1)
@@ -262,6 +261,18 @@ Robot.prototype.raiseEvent = function(event)
             event(arguments[1]);
     }
 }
+
+Robot.prototype.dropItem = function(item, x ,y)
+{
+    var index = this.backpack.indexOf(item);
+    this.backpack.splice(index, 1);
+
+    item.x = x;
+    item.y = y;
+
+    graphicsManager.add(item);
+}
+
 
 Robot.Names = ["Andy", "Ben", "Chris", "Dean", "Ernie", "Frank", "Greg", "Ian", "John", "Keith", "Lee", "Max", "Nick", "Ollie"]
 

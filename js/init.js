@@ -12,23 +12,48 @@ var orders = []
 var robots = []
 var items = []
 
+var checkoutTops = []
+var checkoutMiddles = []
+var checkoutBottoms = []
+
 $(document).ready(function()
 {
     graphicsManager = new GraphicsManager($("#simulation"));
     
     buildWarehouse(warehouseScheme, graphicsManager);
 
-    for(var i = 0; i < robotsCount; i++)
+    var startX = Math.floor((50 - robotsCount * 2)/2);
+    for(var i = 0; i < robotsCount * 2; i+=2)
     {
+        var checkoutTop = new CheckoutTop();
+        checkoutTop.x = startX + i;
+        checkoutTop.y = 2;
+        graphicsManager.add(checkoutTop);
+        checkoutTops.push(checkoutTop);
+
+        var checkoutMiddle = new CheckoutBottom();
+        checkoutMiddle.x = startX + i;
+        checkoutMiddle.y = 1;
+        graphicsManager.add(checkoutMiddle);
+        checkoutMiddles.push(checkoutMiddle);
+
+        var checkoutBottom = new CheckoutBottom();
+        checkoutBottom.x = startX + i;
+        checkoutBottom.y = 0;
+        graphicsManager.add(checkoutBottom);
+        checkoutBottoms.push(checkoutBottom);
+
         var robot = new Robot();
-        robot.x = 23 + i;
-        robot.y = 33;
+        robot.x = startX + i + 1;
+        robot.y = 2;
+
+        robot.depot = { x : checkoutTop.x, y : checkoutTop.y }
 
         graphicsManager.add(robot);
         robots.push(robot); 
     }
 
-    var depot = { x : 23 + Math.floor(robotsCount/2), y : 33 }
+    var depot = { x : 25, y : 1 }
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
@@ -101,6 +126,27 @@ var simulate = function()
             frames = 0;
 
             manager.makeAction();
+
+            for(var i = 0; i < checkoutBottoms.length; i++)
+            {
+                var item = graphicsManager.getObjectAt(Item, checkoutBottoms[i].x, checkoutBottoms[i].y);
+                if(item != null)
+                {
+                    graphicsManager.remove(item);
+                }
+
+                item = graphicsManager.getObjectAt(Item, checkoutMiddles[i].x, checkoutMiddles[i].y);
+                if(item != null)
+                {
+                    graphicsManager.placeAt(item, checkoutBottoms[i].x, checkoutBottoms[i].y);
+                }
+
+                item = graphicsManager.getObjectAt(Item, checkoutTops[i].x, checkoutTops[i].y);
+                if(item != null)
+                {
+                    graphicsManager.placeAt(item, checkoutMiddles[i].x, checkoutMiddles[i].y);
+                }
+            }
 
             for(var i = 0; i < robots.length; i ++)
             {
