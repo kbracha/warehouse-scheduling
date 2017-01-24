@@ -57,6 +57,7 @@ $(document).ready(function()
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
+    manager.setAlgorithm(sweep);
 
     items = createItemSources(ItemTypes.length);
 

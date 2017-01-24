@@ -79,7 +79,7 @@ var Node = function(parent, x, y)
 
 Node.prototype = new StaticObject();
 
-// check whether it is possible to ever stay at (x, y)
+// check whether it is possible to ever stand at (x, y)
 // so check whether there are staticobjects which collide
 // because colliding mobileobjects might move and free the space
 var canPossiblyMoveAt = function(hunter, x, y)
@@ -908,8 +908,6 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
             itemsUnused.splice(index, 1);
     }
 
-    console.log(assignments);
-
     for(var i = 0; i < itemsUnused.length; i++)
     {
         var index = itemsUnused[i];
@@ -932,4 +930,72 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
     }
 
     return assignments;
+}
+
+
+var sweep = function(depot, items, robotCapacity)
+{
+    var itemsOrdered = []
+    // angles for depot (0,0):
+    // (1,1)   : 45 
+    // (1,-1)  : -45 
+    // (-1,-1) : -135
+    // (-1, 1) : 135
+
+    for(var i = 0; i < items.length; i++)
+    {
+        var angle = calculateAngle(depot, items[i]);
+
+        itemsOrdered.push( 
+        {
+            item: items[i],
+            angle : angle
+        });
+    }
+
+    itemsOrdered.sort(function(itemA, itemB)
+    {
+        return itemA.angle - itemB.angle;
+    })
+
+    // sweep from the x positive axis (3 o'clock) counter-clockwise
+    var assignments = []
+    var assignment = assignment = {items : [], weight : 0 };
+
+    for(var i = 0; i < itemsOrdered.length; i++)
+    {
+        if(assignment.weight + itemsOrdered[i].item.weight > robotCapacity)
+        {
+            assignments.push(assignment);
+            assignment = {items : [], weight : 0 };
+        }
+
+        assignment.items.push(itemsOrdered[i].item);
+        assignment.weight += itemsOrdered[i].item.weight;
+    }
+
+    assignments.push(assignment);
+ 
+    for(var i = 0; i < assignments.length; i++)
+    {
+        assignments[i].items = tspBranchAndBound(depot, assignments[i].items);
+    }
+
+    return assignments;
+}
+
+// http://stackoverflow.com/questions/2676719/calculating-the-angle-between-the-line-defined-by-two-points
+function calculateAngle(depot, point)
+{
+    var delta_x = point.x - depot.x;
+    var delta_y = point.y - depot.y;
+    var angle = Math.atan2(delta_y, delta_x) * (180 / Math.PI)
+
+    // convert negative angles to positive
+    if(angle < 0)
+    {
+        angle = 360 + angle;
+    }
+
+    return angle;
 }

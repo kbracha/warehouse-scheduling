@@ -3,6 +3,7 @@ var WarehouseManager = function(depot, robots)
 {
     this.robots = robots;
     this.depot = depot;
+    this.algorithm = clarkeWrightSavings;
 
     var self = this;
     for(var i = 0; i < robots.length; i++)
@@ -22,6 +23,11 @@ var WarehouseManager = function(depot, robots)
     this.completedAssignments = [];
 
     this.ordersUpdated = null;
+}
+
+WarehouseManager.prototype.setAlgorithm = function(algorithmFunction)
+{
+    this.algorithm = algorithmFunction;
 }
 
 WarehouseManager.prototype.makeAction = function()
@@ -56,7 +62,8 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
     var assignments = []
     if(items.length > 0)
     {
-        assignments = clarkeWrightSavings(this.depot, items, Robot.capacity);
+        assignments = this.algorithm(this.depot, items, Robot.capacity);
+
         this.awaitingAssignments = this.awaitingAssignments.concat(assignments);
     }
 
@@ -65,39 +72,74 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
 
 WarehouseManager.prototype.handleAwaitingAssignments = function()
 {
-    var updated = false;
+    var availableRobots = this.getAvailableRobots();
     var j = 0;
-    while(this.awaitingAssignments.length != 0 && j < this.robots.length)
+
+    if(this.awaitingAssignments.length == 0 || availableRobots.length == 0)
     {
-        var assignment = this.awaitingAssignments[0];
+        return;
+    }
 
-        while(j < this.robots.length)
+    var assignments = this.awaitingAssignments.splice(0, availableRobots.length);
+    assignments.sort(function(assignmentA, assignmentB)
+    {
+        return assignmentA.items[0].x - assignmentB.items[0].x;
+    });
+    
+    while(assignments.length > 0)
+    {
+        var assignment = assignments[0];
+        var index = findClosestRobotIndex(assignment.items[0], availableRobots);
+
+        if(index + assignments.length - 1 < availableRobots.length)
         {
-            if(this.robots[j].isBusy() == false)
-            {
-                this.assignItemsToRobot(this.robots[j], assignment.items);
-                
-                this.awaitingAssignments.splice(0, 1);
-                this.pendingAssignments.push(assignment);
-
-                updated = true;
-
-                break;
-            }
-
-            j++;
+            this.assignItemsToRobot(availableRobots[index], assignment.items);
+        }
+        else
+        {
+            index = assignments.length - availableRobots.length;
+            this.assignItemsToRobot(availableRobots[index], assignment.items);
         }
 
-        j++;
+        assignments.splice(0, 1);
+        availableRobots.splice(index, 1);
+        this.pendingAssignments.push(assignment);
     }    
 
-    if(updated)
+    function findClosestRobotIndex(item, robots)
     {
-        console.log("updated")
-        console.log(this.awaitingAssignments.length)
-        this.raiseEvent(this.ordersUpdated);
+        var minDist = Number.MAX_VALUE;
+        var index = 0;
+        for(var i = 0; i < robots.length; i++)
+        {
+            var dist = aStarSearchTo(robots[i], item, robots[i]).cost;
+            if(dist && dist < minDist)
+            {
+                minDist = dist;
+                index = i;
+            }
+        }
+
+        return index;
     }
+
+    this.raiseEvent(this.ordersUpdated);
 }
+
+WarehouseManager.prototype.getAvailableRobots = function()
+{
+    var availableRobots = [];
+
+    for(var i = 0; i < this.robots.length; i++)
+    {
+        if(this.robots[i].isBusy() == false)
+        {
+            availableRobots.push(this.robots[i]);
+        }
+    }
+
+    return availableRobots;
+} 
 
 WarehouseManager.prototype.assignItemsToRobot = function(robot, items)
 {
