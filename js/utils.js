@@ -4,60 +4,76 @@ var s = Shelf;
 
 
 var warehouseScheme = [
-    [w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
-    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w]
+    [w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, s, s, s, s, s, s, s, s, s, s, s, s, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w],
+    [w, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, w]
 ];
 
 
+var getWarehouseSchemeWidth = function()
+{
+    return warehouseScheme[0].length;
+}
 
+console.log("width: " + getWarehouseSchemeWidth())
+
+var getWarehouseSchemeHeight = function()
+{
+    return warehouseScheme.length;
+}
+
+console.log("height: " + getWarehouseSchemeHeight())
 
 var buildWarehouse = function(scheme, manager)
 {
@@ -83,3 +99,4 @@ var buildWarehouse = function(scheme, manager)
         }
     }
 }
+

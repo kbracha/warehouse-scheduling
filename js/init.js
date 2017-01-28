@@ -18,11 +18,11 @@ var checkoutBottoms = []
 
 $(document).ready(function()
 {
-    graphicsManager = new GraphicsManager($("#simulation"));
+    graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
     
     buildWarehouse(warehouseScheme, graphicsManager);
 
-    var startX = Math.floor((50 - robotsCount * 2)/2);
+    var startX = Math.floor((getWarehouseSchemeWidth() - robotsCount * 2)/2);
     for(var i = 0; i < robotsCount * 2; i+=2)
     {
         var checkoutTop = new CheckoutTop();
@@ -53,7 +53,7 @@ $(document).ready(function()
         robots.push(robot); 
     }
 
-    var depot = { x : 25, y : 1 }
+    var depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 1 }
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;

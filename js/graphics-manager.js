@@ -1,22 +1,21 @@
 
-var GraphicsManager = function(canvas)
+var GraphicsManager = function(canvas, worldWidth, worldHeight)
 {
-    this.objects = createArray(50, 50)
-    for(var i = 0; i < 50; i++)
+    this.canvas = canvas;    
+    this.worldWidth = worldWidth;
+    this.worldHeight = worldHeight;
+
+    this.objects = createArray(this.worldWidth, this.worldHeight)
+    for(var i = 0; i < this.worldWidth; i++)
     {
-        for(var j = 0; j <50; j++)
+        for(var j = 0; j < this.worldHeight; j++)
         {
             this.objects[i][j] = [];
         }
     }
-    
-    this.worldWidth = 50;
-    this.worldHeight = 50;
 
     this.scaleX = 10;
     this.scaleY = 10;
-
-    this.canvas = canvas;
 }
 
 GraphicsManager.prototype.add = function(object)
@@ -51,9 +50,9 @@ GraphicsManager.prototype.getScaleX = function()
 
 GraphicsManager.prototype.redraw = function()
 {
-    for(var i = 0; i < 50; i++)
+    for(var i = 0; i < this.worldWidth; i++)
     {
-        for(var j = 0; j <50; j++)
+        for(var j = 0; j < this.worldHeight; j++)
         {
             for(var k = 0; k < this.objects[i][j].length; k++)
             {
@@ -149,9 +148,9 @@ GraphicsManager.prototype.getObjects = function(classType)
 {
     var objects = []
 
-    for(var i = 0; i < 50; i++)
+    for(var i = 0; i < this.worldWidth; i++)
     {
-        for(var j = 0; j <50; j++)
+        for(var j = 0; j < this.worldHeight; j++)
         {
             for(var k = 0; k < this.objects[i][j].length; k++)
             {

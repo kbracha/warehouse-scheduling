@@ -5,8 +5,24 @@
 			"items" : 
 			[
 				{
-					"name" : "Bone",
-					"quantity" : 3
+					"name" : "Toothbrush",
+					"quantity" : 1
+				},		
+				{
+					"name" : "Flashlight",
+					"quantity" : 1
+				},	
+				{
+					"name" : "Glass",
+					"quantity" : 1
+				},
+				{
+					"name" : "Pad",
+					"quantity" : 1
+				},			
+				{
+					"name" : "Headphones",
+					"quantity" : 1
 				}
 			]
 		}

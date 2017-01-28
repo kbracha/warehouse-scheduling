@@ -117,15 +117,22 @@ var canPossiblyMoveAtWhich = function(hunter, positions)
     return allowedPositions;
 }
 
-var aStarGlow = false;
 var aStarSearchTo = function(start, end, hunter)
 {
+    if(start.x == end.x && start.y == end.y)
+    {
+        return {
+            node : null,
+            cost : 0
+        }
+    }
+
     if(hunter == undefined)
     {
         hunter = start;
     }
 
-    var nodes = createArray(50, 50);
+    var nodes = createArray(getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
     for(var i = 0; i < nodes.length; i++)
     {
         for(var j = 0; j < nodes[i].length; j++)
@@ -160,11 +167,11 @@ var aStarSearchTo = function(start, end, hunter)
             {
                 possibleNodes.push(nodes[currentNode.x - 1][currentNode.y]);
             }
-            if (currentNode.y !== 49)
+            if (currentNode.y !== getWarehouseSchemeHeight() - 1)
             {
                 possibleNodes.push(nodes[currentNode.x][currentNode.y + 1]);
             }
-            if (currentNode.x !== 49)
+            if (currentNode.x !== getWarehouseSchemeWidth() - 1)
             {
                 possibleNodes.push(nodes[currentNode.x + 1][currentNode.y]);
             }
@@ -242,6 +249,15 @@ var aStarSearchTo = function(start, end, hunter)
 
     var result = { node: null}
     return result;
+}
+
+// ensure all robots (mobile objects) are ignored when searching for the path
+var aStarSearchToIgnoreMobile = function(start, end)
+{
+    // create hunter with abstract coordinates outside the map to ensure
+    // that it never collides with any mobile objects
+    var hunter = { x : -2, y : -2};
+    return aStarSearchTo(start, end, hunter)
 }
 
 var aStarSearchNextTo = function(start, end, hunter)
@@ -353,6 +369,7 @@ var tspBranchAndBound = function(robot, items, distancesMatrix)
     result.lowerBound = tspCalculatePathCost(distancesMatrix, result.verticesVisited) + tspCalculateLowerBound(distancesMatrix, result.verticesVisited);
     results.push(result);
 
+    var i = 0;
     while(true)
     {
         var bestResult = results[0];
@@ -457,8 +474,7 @@ var constructDistancesMatrix = function(vertices, vehiclesCount)
             }
             else
             {
-                //var distance = chessboardDistance(vertices[i], vertices[j]);
-                var distance = aStarSearchTo(vertices[i], vertices[j]).cost;
+                var distance = aStarSearchToIgnoreMobile(vertices[i], vertices[j]).cost;
                 distancesMatrix[i][j] = distance;
                 distancesMatrix[j][i] = distance;
             }
@@ -978,7 +994,11 @@ var sweep = function(depot, items, robotCapacity)
  
     for(var i = 0; i < assignments.length; i++)
     {
-        assignments[i].items = tspBranchAndBound(depot, assignments[i].items);
+        //assignments[i].items = tspBranchAndBound(depot, assignments[i].items);
+        //tspBranchAndBound(depot, assignments[i].items);
+        //tspChristofideles(depot, assignments[i].items)
+        //assignments[i].items = tspNearestNeighbour(depot, assignments[i].items);
+        assignments[i].items = tspGreedy(depot, assignments[i].items);
     }
 
     return assignments;
@@ -998,4 +1018,240 @@ function calculateAngle(depot, point)
     }
 
     return angle;
+}
+
+
+var tspChristofideles = function(robot, items)
+{
+    var vertices = items.slice();
+    vertices.push(robot);
+
+    var msp = mspKruskal(vertices);
+    
+    var preorderTreeWalk = [];
+    
+}
+
+var mspKruskal = function(vertices)
+{    
+    var sets = [];
+    var msp = []
+
+    for(var i = 0; i < vertices.length; i++)
+    {
+        sets.push({ vertices : [vertices[i]] });
+    }
+
+    var edges = createAndSortEdges(vertices);
+
+    for(var i = 0; i < edges.length; i++)
+    {
+        var set0 = findSet(edges[i].vertices[0]);
+        var set1 = findSet(edges[i].vertices[1])
+        if(set0 != set1)
+        {
+            msp.push(edges[i]);
+            
+            for(var j = 0; j < set1.vertices.length; j++)
+            {
+                set0.vertices.push(set1.vertices[j])
+            }
+
+            var set1index = sets.indexOf(set1);
+            sets.splice(set1index, 1);
+
+            if(sets.length == 1)
+            {
+                break;
+            }
+        }
+    }
+
+    return msp;
+
+    function findSet(verticeIndex)
+    {
+        for(var i = 0 ; i < sets.length; i++)
+        {
+            if (sets[i].vertices.indexOf(verticeIndex) != -1)
+            {
+                return sets[i];
+            }
+        }
+    }
+}
+
+var createAndSortEdges = function(vertices)
+{
+    var edges = []
+
+    for(var i = 0; i < vertices.length; i++)
+    {
+        for(var j = i + 1; j < vertices.length; j++)
+        {
+            var edge = 
+            {
+                vertices : [vertices[i], vertices[j]],
+                weight : aStarSearchToIgnoreMobile(vertices[i], vertices[j]).cost
+            }
+
+            edges.push(edge);
+        }
+    }
+
+    edges.sort(function(edgeA, edgeB)
+    {
+        return edgeA.weight - edgeB.weight;
+    })    
+
+    return edges;
+}
+
+var tspNearestNeighbour = function(robot, items)
+{
+    var vertices = items.slice();
+    vertices.push(robot);
+
+    var distancesMatrix = constructDistancesMatrix(vertices);
+
+    var minTour = {
+        cost : Number.MAX_VALUE
+    }
+
+    for(var i = 0; i < vertices.length; i++)
+    {
+        var tour = nearestNeighbourCalculateTour(i, vertices, distancesMatrix);
+
+        if(tour.cost < minTour.cost)
+        {
+            minTour = tour;
+        }
+    }
+
+    minTour = minTour.vertices;
+    
+    for(var i = 0; i < minTour.length; i++)
+    {
+        minTour[i] = vertices[minTour[i]]
+    }
+
+    return setupTourForRobot(robot, minTour);
+}
+
+var nearestNeighbourCalculateTour = function(startingVertexIndex, vertices, distancesMatrix)
+{
+    var currentVertexIndex = startingVertexIndex;
+    var usedVertices = [startingVertexIndex];
+    var cost = 0;
+
+    while(usedVertices.length != vertices.length)
+    {
+        var minDistance = Number.MAX_VALUE;
+        var minVertexIndex = null;
+
+        for(var i = 0; i < vertices.length; i++)
+        {
+            if(usedVertices.indexOf(i) == -1)
+            {
+                var distance = distancesMatrix[currentVertexIndex][i];
+                
+                if(distance < minDistance)
+                {
+                    minDistance = distance;
+                    minVertexIndex = i;
+                }
+            }
+        }
+
+        cost += minDistance;
+        usedVertices.push(minVertexIndex);
+        currentVertexIndex = minVertexIndex;
+    }
+
+    cost += distancesMatrix[minVertexIndex][startingVertexIndex]
+
+    return {
+        cost : cost,
+        vertices : usedVertices
+    }
+}
+
+// remove robot (it is one of the vertices in the tour)
+// and return tour where index 0 is the first vertex where robot should go to
+var setupTourForRobot = function(robot, tour)
+{
+    var robotIndex = tour.indexOf(robot);
+    // split the tour where robot is
+    var tourPart = tour.splice(robotIndex, tour.length - robotIndex)
+    // remove robot from the tour
+    tourPart.splice(0, 1);
+    // concat parts
+    return tour.concat(tourPart);    
+} 
+
+var tspGreedy = function(robot, items)
+{
+    var vertices = items.slice();
+    vertices.push(robot);
+
+    var edges = createAndSortEdges(vertices);
+    var paths = []
+    for(var i = 0; i < vertices.length; i++)
+    {
+        console.log(i)
+        paths.push({
+            vertices : [vertices[i]]
+        });
+    }
+
+    for(var i = 0; i < edges.length && paths.length != 1; i++)
+    {
+        var vertexA = edges[i].vertices[0];
+        var vertexB = edges[i].vertices[1];
+        var pathA = findPath(vertexA, paths);
+        var pathB = findPath(vertexB, paths);
+        console.log(pathB);
+
+        if(pathA != pathB && isAtTheEdgeOfPath(vertexA, pathA) == true && isAtTheEdgeOfPath(vertexB, pathB) == true)
+        {
+            if(pathA.vertices.indexOf(vertexA) == 0)
+            {
+                pathA.vertices.reverse();
+            }
+
+            if(pathB.vertices.indexOf(vertexB) != 0)
+            {
+                pathB.vertices.reverse();
+            }
+
+            pathA.vertices = pathA.vertices.concat(pathB.vertices);
+
+            var index = paths.indexOf(pathB);
+            paths.splice(index, 1);
+        }
+    }
+
+    return setupTourForRobot(robot, paths[0].vertices)
+
+    function findPath(vertex, paths)
+    {
+        console.log(vertex)
+        for(var i = 0; i < paths.length; i++)
+        {
+            console.log(paths[i]);
+            if(paths[i].vertices.indexOf(vertex) != -1)
+            {
+                return paths[i];
+            }
+        }
+
+        console.log("FAIL")
+    }
+
+    function isAtTheEdgeOfPath(vertex, path)
+    {
+        var index = path.vertices.indexOf(vertex);
+
+        return index == 0 || index == path.vertices.length - 1;
+    }
 }
