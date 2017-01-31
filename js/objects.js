@@ -10,6 +10,7 @@ var StaticObject = function()
     this.canvas = $.parseHTML("<div>" +
                               "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div></div>") 
     this.sprite = $(this.canvas).children().first();
+    this.spriteUrl = null;
 
     this.background = "transparent";
     this.zIndex = 0;   
@@ -86,9 +87,16 @@ StaticObject.prototype.setSpriteName = function(name)
 
 StaticObject.prototype.setSprite = function(fullPath)
 {
+    this.spriteUrl = fullPath;
     $(this.sprite).css("background", "url(" + fullPath + ") 0 0")
     $(this.sprite).css("background-size", "100% 100%")
     $(this.sprite).css("background-repeat", "no-repeat")       
+}
+
+StaticObject.prototype.setBackground = function(color)
+{
+    this.background = color;
+    graphicsManager.draw(this);
 }
 
 var MobileObject = function()
@@ -98,6 +106,8 @@ var MobileObject = function()
     this.isMoving = false;
     this.currentMoveIteration = 1;
     this.iterationsPerMove = 3;
+
+    this.steps = 0;
 }
 
 extend(MobileObject, StaticObject);
@@ -176,6 +186,8 @@ MobileObject.prototype.continueMove = function()
         this.setSpriteName(spriteName);
         this.isMoving = false;
         this.currentMoveIteration = 1;
+    
+        this.steps++;
     }
 }
 

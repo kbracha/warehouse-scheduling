@@ -6,11 +6,13 @@ var robotInit;
 var running = false;
 
 var shelfVertices = []
-var robotsCount = 10;
+var robotsCount = 2;
+var selectedRobot = null;
 
 var orders = []
 var robots = []
 var items = []
+var selectedItem = null;
 
 var checkoutTops = []
 var checkoutMiddles = []
@@ -19,10 +21,16 @@ var checkoutBottoms = []
 $(document).ready(function()
 {
     graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
+    //var h = $(window).height() / getWarehouseSchemeHeight();
+    //var w = $(window).width() / getWarehouseSchemeWidth();
+    console.log($(window).width() / $(window).height()) // 2.1080246913580245
+    //graphicsManager.scaleY = h;
+    //graphicsManager.scaleX = w;
     
-    buildWarehouse(warehouseScheme, graphicsManager);
+    buildWarehouse2(warehouseScheme2, graphicsManager);
 
     var startX = Math.floor((getWarehouseSchemeWidth() - robotsCount * 2)/2);
+    console.log(startX)
     for(var i = 0; i < robotsCount * 2; i+=2)
     {
         var checkoutTop = new CheckoutTop();
@@ -57,7 +65,7 @@ $(document).ready(function()
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
-    manager.setAlgorithm(sweep);
+    manager.setAlgorithm(clarkeWrightSavings);
 
     items = createItemSources(ItemTypes.length);
 
@@ -82,6 +90,20 @@ var displayAllRouteMarks = function()
     for(var i = 0; i < robots.length; i++)
     {
         displayRouteMarks(robots[i]);
+    }
+}
+
+var clearRouteMarks = function(robot)
+{
+    var marks = graphicsManager.getObjects(Mark);
+    var robotCharacter = robot.name[0];
+
+    for(var i = 0; i < marks.length; i++)
+    {
+        if(marks[i].character == robotCharacter)
+        {
+            graphicsManager.remove(marks[i]);
+        }
     }
 }
 
@@ -149,10 +171,8 @@ var simulate = function()
                 }
             }
 
-            for(var i = 0; i < robots.length; i ++)
-            {
-                robots[i].makeAction()
-            }
+            updateTotalSteps();
+            updateSelectedRobot();
         }
     }
 
@@ -248,8 +268,6 @@ var bindControls = function()
         {
             framesPerAction = 1;
         }
-
-        console.log(framesPerAction)
     });
 
     $("#selZoom").change(function(e)
@@ -360,8 +378,12 @@ var bindControls = function()
 
     $("#btnDisplayMarks").click(function(e)
     {
-        var robot = $("#selRobots").find(":selected").data("robot");
-        displayRouteMarks(robot);
+        displayRouteMarks(selectedRobot);
+    });
+
+    $("#btnClearMarks").click(function(e)
+    {
+        clearRouteMarks(selectedRobot);
     });
 
     for(var i = 0; i < robots.length; i++)
@@ -370,6 +392,28 @@ var bindControls = function()
                     .data("robot",robots[i])
                     .text(robots[i].name)); 
     }
+
+    for(var i = 0; i < items.length; i++)
+    {
+        $("#selItems").append($("<option></option>")
+                    .data("item", items[i])
+                    .text(items[i].getClass())); 
+    }
+
+    $("#selRobots").change(function() 
+    {
+        var robot = $("#selRobots").find(":selected").data("robot")
+        selectRobot(robot)
+    });
+
+    $("#selItems").change(function() 
+    {
+        var item = $("#selItems").find(":selected").data("item")
+        selectItem(item)
+    });
+
+    selectRobot(robots[0]);
+    selectItem(items[0]);
 
     $("#btnCheckOrders").click(function(e)
     {
@@ -387,6 +431,44 @@ var bindControls = function()
                 parseOrderData(data.orderData);
             }
         });
+    });
+
+    $("#btnResetSteps").click(function(e)
+    {
+        for(var i = 0; i < robots.length; i++)
+        {
+            robots[i].steps = 0;
+        }
+
+        $("#steps").text(0);
+    });
+
+    $('input[type=radio][name=radioVRP]').change(function() 
+    {
+        if (this.value == 'Savings') 
+        {
+            manager.setAlgorithm(clarkeWrightSavings);
+            console.log("savings")
+        }
+        else if (this.value == 'Sweep') 
+        {
+            manager.setAlgorithm(sweep);
+            console.log("sweep")
+        }
+    });
+
+    $('input[type=radio][name=radioTSP]').change(function() 
+    {
+        if (this.value == 'Nearest Neighbour') 
+        {
+            tspAlgorithm = tspNearestNeighbour;
+            console.log("nn")
+        }
+        else if (this.value == 'Greedy') 
+        {
+            tspAlgorithm = tspGreedy;
+            console.log("greedy")
+        }
     });
 }
 
@@ -433,7 +515,7 @@ var updateOrdersInfo = function()
          }
     }
 
-     $("#pendingOrders").empty();
+    $("#pendingOrders").empty();
 
     var pendingOrders = manager.pendingOrders;
     for(var i = 0; i < pendingOrders.length; i++)
@@ -479,3 +561,93 @@ var updateOrdersInfo = function()
          }        
     }
 }
+
+var updateTotalSteps = function()
+{
+    var steps = 0;
+    for(var i = 0; i < robots.length; i ++)
+    {
+        robots[i].makeAction()
+        steps += robots[i].steps;
+
+        $("#steps").text(steps);
+    }
+}
+
+var selectRobot = function(robot)
+{
+    if(selectedRobot != null)
+    {
+        selectedRobot.setBackground("transparent");
+    }
+    
+    selectedRobot = robot;
+    selectedRobot.setBackground("green");
+
+    $("#robotImg").attr("src", robot.spriteUrl);
+
+    $("#robotSteps").text(robot.steps);
+
+    var carries;
+    var itemsCarried = robot.returnItemsCollected();
+    if(itemsCarried.length != 0)
+    {
+        carries = itemsCarried[0].getClass();
+        for(var i = 1; i < itemsCarried.length; i++)
+        {
+            carries += ", " + itemsCarried[i].getClass();
+        }
+    }
+    else
+    {
+        carries = "Nothing";
+    }
+
+    $("#robotAwayToCollect").text(makeItemsString(robot.returnItemsToCollect()));
+    $("#robotCollected").text(makeItemsString(robot.returnItemsCollected()));
+
+    $("#robotCoordinates").text("(" + robot.x + ", " + robot.y + ")");
+
+    function makeItemsString(items)
+    {
+        var string;
+        if(items.length != 0)
+        {
+            string = items[0].getClass();
+            for(var i = 1; i < items.length; i++)
+            {
+                string += ", " + items[i].getClass();
+            }
+        }
+        else
+        {
+            string = "Nothing";
+        }
+
+        return string;
+    }
+}
+
+var selectItem = function(item)
+{
+    if(selectedItem != null)
+    {
+        selectedItem.setBackground("transparent");
+    }
+    
+    selectedItem = item;
+    selectedItem.setBackground("yellow");
+
+    $("#itemImg").attr("src", item.spriteUrl);  
+
+    $("#itemWeight").text(item.weight); 
+    $("#itemCost").text(item.cost); 
+
+    $("#itemCoordinates").text("(" + item.x + ", " + item.y + ")");
+}
+
+var updateSelectedRobot = function()
+{
+    selectRobot(selectedRobot);
+}
+

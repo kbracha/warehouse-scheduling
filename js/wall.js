@@ -11,13 +11,15 @@ var Wall = function()
 extend(Wall, StaticObject);
 
 
-var Shelf = function()
+var Shelf = function(x, y)
 {
     StaticObject.apply(this);
 
     this.collides = true;
     this.background = "transparent";
     this.zIndex = 2;
+    this.x = x;
+    this.y = y;
 
     this.setSpritePath("img/table")
 }

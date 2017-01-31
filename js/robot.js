@@ -28,6 +28,8 @@ var Robot = function()
     this.depot = {x : -1, y : -1};
 
     this.itemDelivered = null;
+
+    this.steps = 0;
 }
 
 
@@ -198,7 +200,6 @@ Robot.prototype.generateRouteMarks = function()
         if(job instanceof GoToDestinationJob || job instanceof GoNextToDestinationJob)
         {
             var node = job.searchFunction(startLocation, job.destination, this).node;
-            startLocation = null;
 
             while(node != null)
             {
@@ -281,6 +282,7 @@ var Mark = function(character, x , y)
 {
     StaticObject.apply(this);
 
+    this.character = character;
     this.setSprite("img/characters/letter_" + character + ".png");
     this.x = x;
     this.y = y;

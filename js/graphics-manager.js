@@ -58,7 +58,6 @@ GraphicsManager.prototype.redraw = function()
             {
                 this.draw(this.objects[i][j][k])
             }
-
         }
     }
 }

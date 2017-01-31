@@ -14,6 +14,7 @@ var Item = function()
 }
 extend(Item, StaticObject);
 Item.prototype.weight = 5;
+Item.prototype.cost = 0;
 
 var CoffeMachine = function()
 {

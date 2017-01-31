@@ -998,7 +998,7 @@ var sweep = function(depot, items, robotCapacity)
         //tspBranchAndBound(depot, assignments[i].items);
         //tspChristofideles(depot, assignments[i].items)
         //assignments[i].items = tspNearestNeighbour(depot, assignments[i].items);
-        assignments[i].items = tspGreedy(depot, assignments[i].items);
+        assignments[i].items = tspAlgorithm(depot, assignments[i].items);
     }
 
     return assignments;
@@ -1118,9 +1118,12 @@ var tspNearestNeighbour = function(robot, items)
         cost : Number.MAX_VALUE
     }
 
+    console.log(vertices);
+
     for(var i = 0; i < vertices.length; i++)
     {
         var tour = nearestNeighbourCalculateTour(i, vertices, distancesMatrix);
+        console.log(tour)
 
         if(tour.cost < minTour.cost)
         {
@@ -1169,6 +1172,8 @@ var nearestNeighbourCalculateTour = function(startingVertexIndex, vertices, dist
     }
 
     cost += distancesMatrix[minVertexIndex][startingVertexIndex]
+
+    console.log(usedVertices);
 
     return {
         cost : cost,
@@ -1255,3 +1260,6 @@ var tspGreedy = function(robot, items)
         return index == 0 || index == path.vertices.length - 1;
     }
 }
+
+
+var tspAlgorithm = tspNearestNeighbour;
