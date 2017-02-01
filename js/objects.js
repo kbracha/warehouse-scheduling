@@ -9,8 +9,17 @@ var StaticObject = function()
 
     this.canvas = $.parseHTML("<div>" +
                               "<div style='position: absolute; top: 0; left: 0; width:100%; height: 100%;'></div></div>") 
+    $(this.canvas).data("object", this);
     this.sprite = $(this.canvas).children().first();
-    this.spriteUrl = null;
+
+    if(this.spriteUrl != undefined)
+    {
+        this.setSprite(this.spriteUrl);
+    }
+    else
+    {
+        this.spriteUrl = null;
+    }
 
     this.background = "transparent";
     this.zIndex = 0;   

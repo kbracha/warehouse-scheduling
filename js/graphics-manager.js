@@ -170,6 +170,18 @@ GraphicsManager.prototype.getObjectsAt = function(x, y)
     return this.objects[x][y];   
 }
 
+GraphicsManager.prototype.getObjectFromCanvas = function(canvas)
+{
+    var object = $(canvas).data("object");
+
+    if(object == undefined)
+    {
+        object = $(canvas).parent().data("object"); 
+    }
+
+    return object; 
+}
+
 GraphicsManager.prototype.getChessboardDistance = function(objectA, objectB)
 {
     return chessboardDistance(objectA, objectB);

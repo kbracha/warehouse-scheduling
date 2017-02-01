@@ -74,7 +74,7 @@ $(document).ready(function()
         dataType: "json",
         success: function (data)
         {
-            populateOrderList(data);
+            populateBasketList(data);
         }
     });
 
@@ -410,6 +410,7 @@ var bindControls = function()
     {
         var item = $("#selItems").find(":selected").data("item")
         selectItem(item)
+        console.log(selectedItem);
     });
 
     selectRobot(robots[0]);
@@ -421,17 +422,41 @@ var bindControls = function()
         manager.handleAwaitingAssignments();
     });
 
-    $("#btnAddOrder").click(function(e)
+    $("#btnItemAddToBasket").click(function(e)
     {
-        var filename = $("#selOrders").val();
+        console.log(selectedItem.getClass());
+        console.log(window[selectedItem.getClass()])
+        basketOrder.add(window[selectedItem.getClass()], 1);
+        updateBasket();
+    });
+
+    $("#btnAddBasket").click(function(e)
+    {
+        var filename = $("#selBasket").val();
         $.ajax({
             url: "./data/" + filename,
             success: function (data)
             {
-                parseOrderData(data.orderData);
+                parseBasketData(data.basketData);
             }
         });
     });
+
+    $("#btnClearBasket").click(function(e)
+    {
+        basketOrder = new Order();
+        updateBasket();
+    });
+
+    $("#btnSubmitBasket").click(function(e)
+    {
+        basketOrder.finalize(getItemSource);
+        manager.acknowledgeOrder(basketOrder);
+        basketOrder = new Order();
+        updateBasket();
+    });
+
+    updateBasket();
 
     $("#btnResetSteps").click(function(e)
     {
@@ -441,6 +466,23 @@ var bindControls = function()
         }
 
         $("#steps").text(0);
+    });
+
+    $("#simulation").click(function(e)
+    {
+        var object = graphicsManager.getObjectFromCanvas(e.target);
+        if(object == undefined)
+        {
+            return;
+        }
+        else if(object.isInstanceOf(Robot))
+        {
+            changeRobotSelection(object.name);
+        }
+        else if(object.isInstanceOf(Item))
+        {
+            changeItemSelection(object.getClass());
+        }
     });
 
     $('input[type=radio][name=radioVRP]').change(function() 
@@ -472,31 +514,99 @@ var bindControls = function()
     });
 }
 
-var parseOrderData = function(orderData)
+var basketOrder = new Order();
+var parseBasketData = function(basketData)
 {
-    for(var i = 0; i < orderData.length; i++)
+    for(var i = 0; i < basketData.length; i++)
     {
-        var order = new Order();
-
-        for(var j = 0; j < orderData[i].items.length; j++)
+        for(var j = 0; j < basketData[i].items.length; j++)
         {
-            order.add(window[orderData[i].items[j].name], orderData[i].items[j].quantity);
+            basketOrder.add(window[basketData[i].items[j].name], basketData[i].items[j].quantity);
         }
-
-        order.finalize(getItemSource);
-
-        manager.acknowledgeOrder(order);
     }
+
+    updateBasket();
 }
 
-var populateOrderList = function(data)
+var populateBasketList = function(data)
 {
     for(var i = 0; i < data.length - 1; i++)
     {
-         $("#selOrders").append($("<option></option>")
+         $("#selBasket").append($("<option></option>")
                     .val(data[i])
                     .text(data[i]));        
     }
+}
+
+var updateBasket = function()
+{
+     $("#basketId").text(basketOrder.id);
+     $("#basketItems").empty();
+     var itemsInfo = basketOrder.getItemsInfo();
+     
+     for(var key in itemsInfo)
+     {
+         var name = itemsInfo[key].itemType.name;
+
+         $("#basketItems").append("&nbsp;&nbsp;-"+
+         makeItemLink(name) + " x " + itemsInfo[key].quantity + "&nbsp;&nbsp;"
+         + '<button class="basket-item-btn" onclick="changeBasket(\'' + name + '\',\'increase\')">+</button>'
+         + '<button class="basket-item-btn" onclick="changeBasket(\'' + name + '\',\'decrease\')">-</button>'
+         + '<button class="basket-item-btn" onclick="changeBasket(\'' + name + '\',\'remove\')">x</button>'
+         + "<br>");
+     }
+
+     $("#basketCount").text(basketOrder.getCount());
+     $("#basketWeight").text(basketOrder.getWeight());
+     $("#basketCost").text(basketOrder.getCost());
+}
+
+var changeBasket = function(itemName, action)
+{
+    var itemsInfo = basketOrder.getItemsInfo();
+
+    for(var key in itemsInfo)
+    {
+         if(itemsInfo[key].itemType.name == itemName)
+         {
+             if(action == "increase")
+             {
+                 basketOrder.add(itemsInfo[key].itemType, 1)
+             }
+             else if(action == "decrease")
+             {
+                 basketOrder.remove(itemsInfo[key].itemType, 1)
+             }
+             else // if action == "remove"
+             {
+                 basketOrder.remove(itemsInfo[key].itemType, itemsInfo[key].quantity)
+             }
+             
+             break;
+         }
+    }   
+
+    updateBasket();
+}
+
+var makeItemLink = function(itemName)
+{
+    return "<span style='cursor: pointer;' onclick='changeItemSelection(\"" + itemName + "\")'>" + itemName + "</span>";  
+}
+
+var makeRobotLink = function(robotName)
+{
+    return "<span style='cursor: pointer;' onclick='changeRobotSelection(\"" + robotName + "\")'>" + robotName + "</span>";  
+}
+
+var changeItemSelection = function(itemName)
+{
+    $('#selItems').val(itemName).change();
+}
+
+var changeRobotSelection = function(robotName)
+{
+    $('#selRobots').val(robotName).change();
 }
 
 var updateOrdersInfo = function()
@@ -506,12 +616,12 @@ var updateOrdersInfo = function()
     var awaitingOrders = manager.awaitingOrders;
     for(var i = 0; i < awaitingOrders.length; i++)
     {
-         $("#awaitingOrders").append("<b>Order #" + i + "</b><br>");
+         $("#awaitingOrders").append("<b>Order #" + awaitingOrders[i].id + "</b><br>");
          var itemsInfo = awaitingOrders[i].getItemsInfo();
          
          for(var key in itemsInfo)
          {
-             $("#awaitingOrders").append("&nbsp;&nbsp;-" + itemsInfo[key].itemType.name + " x " + itemsInfo[key].quantity + "<br>");
+             $("#awaitingOrders").append("&nbsp;&nbsp;-" + makeItemLink(itemsInfo[key].itemType.name) + " x " + itemsInfo[key].quantity + "<br>");
          }
     }
 
@@ -520,7 +630,7 @@ var updateOrdersInfo = function()
     var pendingOrders = manager.pendingOrders;
     for(var i = 0; i < pendingOrders.length; i++)
     {
-         $("#pendingOrders").append("<b>Order #" + i + "</b><br>");
+         $("#pendingOrders").append("<b>Order #" + pendingOrders[i].id + "</b><br>");
          var items = pendingOrders[i].getItems();
          
          for(var j = 0; j < items.length; j++)
@@ -531,11 +641,11 @@ var updateOrdersInfo = function()
              {
                  if(items[j].delivered == true)
                  {
-                     status = "delivered by " + picker.name;
+                     status = "delivered by " + makeRobotLink(picker.name);
                  }
                  else
                  {
-                    status = "fetched by " + picker.name;
+                    status = "fetched by " + makeRobotLink(picker.name);
                  }    
              }
              else
@@ -543,7 +653,7 @@ var updateOrdersInfo = function()
                  status = "waiting for assignment";
              }
 
-             $("#pendingOrders").append("&nbsp;&nbsp;-" + items[j].getClass() + " : " + status + "<br>");
+             $("#pendingOrders").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : " + status + "<br>");
          }        
     }
 
@@ -552,12 +662,12 @@ var updateOrdersInfo = function()
     var completedOrders = manager.completedOrders;
     for(var i = 0; i < completedOrders.length; i++)
     {
-         $("#completedOrders").append("<b>Order #" + i + "</b><br>");
+         $("#completedOrders").append("<b>Order #" + completedOrders[i].id + "</b><br>");
          var items = completedOrders[i].getItems();
          
          for(var j = 0; j < items.length; j++)
          {
-             $("#completedOrders").append("&nbsp;&nbsp;-" + items[j].getClass() + " : delivered by " + items[j].picker.name + "<br>");
+             $("#completedOrders").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : delivered by " + makeRobotLink(items[j].picker.name) + "<br>");
          }        
     }
 }
@@ -603,8 +713,10 @@ var selectRobot = function(robot)
         carries = "Nothing";
     }
 
-    $("#robotAwayToCollect").text(makeItemsString(robot.returnItemsToCollect()));
-    $("#robotCollected").text(makeItemsString(robot.returnItemsCollected()));
+    $("#robotAwayToCollect").empty();
+    $("#robotAwayToCollect").append(makeItemsString(robot.returnItemsToCollect()));
+    $("#robotCollected").empty();
+    $("#robotCollected").append(makeItemsString(robot.returnItemsCollected()));
 
     $("#robotCoordinates").text("(" + robot.x + ", " + robot.y + ")");
 
@@ -613,15 +725,15 @@ var selectRobot = function(robot)
         var string;
         if(items.length != 0)
         {
-            string = items[0].getClass();
+            string = makeItemLink(items[0].getClass()) + " (#" + items[0].order.id + ")";
             for(var i = 1; i < items.length; i++)
             {
-                string += ", " + items[i].getClass();
+                string += ", " + makeItemLink(items[i].getClass()) + " (#" + items[i].order.id + ")";
             }
         }
         else
         {
-            string = "Nothing";
+            string = "None";
         }
 
         return string;

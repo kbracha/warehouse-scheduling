@@ -19,162 +19,195 @@ Item.prototype.cost = 0;
 var CoffeMachine = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/coffee-machine")
 }
 extend(CoffeMachine, Item);
 CoffeMachine.prototype.weight = 50;
+CoffeMachine.prototype.spriteUrl = "img/items/coffee-machine.png";
 
 var Bone = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/bone")
 }
 extend(Bone, Item);
 Bone.prototype.weight = 8;
+Bone.prototype.spriteUrl = "img/items/bone.png";
 
 var Book = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/book")
 }
 extend(Book, Item);
 Book.prototype.weight = 30;
+Book.prototype.spriteUrl = "img/items/book.png";
 
 var CD = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/cd")
 }
 extend(CD, Item);
 CD.prototype.weight = 3;
+CD.prototype.spriteUrl = "img/items/cd.png";
 
 var Drill = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/drill")
 }
 extend(Drill, Item);
 Drill.prototype.weight = 45;
+Drill.prototype.spriteUrl = "img/items/drill.png";
 
 var Flashlight = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/flashlight")
 }
 extend(Flashlight, Item);
 Flashlight.prototype.weight = 10;
+Flashlight.prototype.spriteUrl = "img/items/flashlight.png";
 
 var Glass = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/glass")
 }
 extend(Glass, Item);
 Glass.prototype.weight = 5;
+Glass.prototype.spriteUrl = "img/items/glass.png";
 
 var Headphones = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/headphones")
 }
 extend(Headphones, Item);
 Headphones.prototype.weight = 15;
+Headphones.prototype.spriteUrl = "img/items/headphones.png";
 
 var Pad = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/pad")
 }
 extend(Pad, Item);
 Pad.prototype.weight = 20;
+Pad.prototype.spriteUrl = "img/items/pad.png";
 
 var Toothbrush = function()
 {
     Item.apply(this);
-    this.setSpritePath("img/toothbrush")
 }
 extend(Toothbrush, Item);
 Toothbrush.prototype.weight = 2;
+Toothbrush.prototype.spriteUrl = "img/items/toothbrush.png";
 
-var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headphones, Pad, Toothbrush]
-
-
-
-var Order = function()
+var Kiwi = function()
 {
-    this.itemsInfo = {};
-    this.items = [];
-    this.assigned = false;
+    Item.apply(this);
 }
+extend(Kiwi, Item);
+Kiwi.prototype.weight = 3;
+Kiwi.prototype.spriteUrl = "img/items/kiwi.png";
 
-
-Order.prototype.add = function(itemType, quantity)
+var Chips = function()
 {
-    if(!(itemType in this.itemsInfo))
-    {
-        this.itemsInfo[itemType] = {
-            quantity : 0,
-            itemType: itemType // create a link because when iterating over keys in items the key reference doesn't work
-        }
-    }
-
-    this.itemsInfo[itemType].quantity += quantity;
+    Item.apply(this);
 }
+extend(Chips, Item);
+Chips.prototype.weight = 7;
+Chips.prototype.spriteUrl = "img/items/chips.png";
 
-Order.prototype.getWeight = function()
+var Watermelon = function()
 {
-    var weight = 0;
-
-    for(var key in this.itemsInfo)
-    {
-        weight += this.itemsInfo[key].quantity * this.itemsInfo[key].itemType.prototype.weight;
-    }
-
-    return weight;
+    Item.apply(this);
 }
+extend(Watermelon, Item);
+Watermelon.prototype.weight = 20;
+Watermelon.prototype.spriteUrl = "img/items/watermelon.png";
 
-Order.prototype.getCount = function()
+var WatermelonSlice = function()
 {
-    var count = 0;
-
-    for(var key in this.itemsInfo)
-    {
-        count += this.itemsInfo[key].quantity;
-    }
-
-    return count;
+    Item.apply(this);
 }
+extend(WatermelonSlice, Item);
+WatermelonSlice.prototype.weight = 4;
+WatermelonSlice.prototype.spriteUrl = "img/items/watermelon-slice.png";
 
-Order.prototype.finalize = function(getItemSourceFunction)
+var Asparagus = function()
 {
-    this.items = [];
-
-    for(var key in this.itemsInfo)
-    {
-        var itemSource = getItemSourceFunction(this.itemsInfo[key].itemType);
-
-        for(var i = 0; i < this.itemsInfo[key].quantity; i++)
-        {
-            var item = new this.itemsInfo[key].itemType();
-
-            item.x = itemSource.x;
-            item.y = itemSource.y;
-            item.order = this;
-
-            this.items.push(item);
-        }
-    }
-    
-    return this.items;    
+    Item.apply(this);
 }
+extend(Asparagus, Item);
+Asparagus.prototype.weight = 9;
+Asparagus.prototype.spriteUrl = "img/items/asparagus.png";
 
-Order.prototype.getItems = function()
+var CakeSlice = function()
 {
-    return this.items;
+    Item.apply(this);
 }
+extend(CakeSlice, Item);
+CakeSlice.prototype.weight = 12;
+CakeSlice.prototype.spriteUrl = "img/items/cake-slice.png";
 
-Order.prototype.getItemsInfo = function()
+var Cinammon = function()
 {
-    return this.itemsInfo;
+    Item.apply(this);
 }
+extend(Cinammon, Item);
+Cinammon.prototype.weight = 7;
+Cinammon.prototype.spriteUrl = "img/items/cinammon.png";
+
+var Doughnut = function()
+{
+    Item.apply(this);
+}
+extend(Doughnut, Item);
+Doughnut.prototype.weight = 8;
+Doughnut.prototype.spriteUrl = "img/items/doughnut.png";
+
+var Eggplant = function()
+{
+    Item.apply(this);
+}
+extend(Eggplant, Item);
+Eggplant.prototype.weight = 10;
+Eggplant.prototype.spriteUrl = "img/items/eggplant.png";
+
+var Garlic = function()
+{
+    Item.apply(this);
+}
+extend(Garlic, Item);
+Garlic.prototype.weight = 3;
+Garlic.prototype.spriteUrl = "img/items/garlic.png";
+
+var Lemon = function()
+{
+    Item.apply(this);
+}
+extend(Lemon, Item);
+Lemon.prototype.weight = 4;
+Lemon.prototype.spriteUrl = "img/items/lemon.png";
+
+var OrangeJuice = function()
+{
+    Item.apply(this);
+}
+extend(OrangeJuice, Item);
+OrangeJuice.prototype.weight = 16;
+OrangeJuice.prototype.spriteUrl = "img/items/orange-juice.png";
+
+var Popcorn = function()
+{
+    Item.apply(this);
+}
+extend(Popcorn, Item);
+Popcorn.prototype.weight = 6;
+Popcorn.prototype.spriteUrl = "img/items/popcorn.png";
+
+var Pretzel = function()
+{
+    Item.apply(this);
+}
+extend(Pretzel, Item);
+Pretzel.prototype.weight = 5;
+Pretzel.prototype.spriteUrl = "img/items/pretzel.png";
+
+var ItemTypes = [CoffeMachine, Bone, Book, CD, Drill, Flashlight, Glass, Headphones, Pad, Toothbrush, Kiwi, Chips, Watermelon,
+                 WatermelonSlice, Asparagus, CakeSlice, Cinammon, Doughnut, Eggplant, Garlic, Lemon, OrangeJuice, Popcorn, Pretzel]
 

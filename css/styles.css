@@ -18,6 +18,11 @@
     text-align: center;
 }
 
+#sidebar-dummy
+{
+    height: 1000px;
+}
+
 .title-bar
 {
     background-color: lightgreen;
@@ -29,6 +34,13 @@
     border: 1px solid gray;
     background-color: white;
     width: 20px;
+}
+
+.basket-item-btn
+{
+    border: 1px solid gray;
+    background-color: white;
+    width: 20px;    
 }
 
 #robotImg, #itemImg

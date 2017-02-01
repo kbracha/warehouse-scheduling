@@ -13,35 +13,35 @@
 <div id="simulation" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; overflow: scroll;" tabindex="1" >
 </div>
 <div id="buttons" style="position: fixed; top: 0; left: 0; padding: 10px; background-color: white; z-index: 100; opacity: 0.7">
-<button id="btnRun" class="btn btn-default">Run</button>
-<button id="btnPause" class="btn btn-default">Pause</button>
-<button id="btnOneRound" class="btn btn-default">Single</button>
-<button id="btnReset" class="btn btn-default">Reset</button>
-Speed:
-<select id="selSpeed" class="form-control" style="width: 100px; display: inline-block;">
-    <option>0.125x</option>
-    <option>0.25x</option>
-    <option>0.5x</option>
-    <option selected>1x</option>
-    <option>2x</option>
-    <option>4x</option>
-    <option>8x</option>
-</select>
+    <button id="btnRun" class="btn btn-default">Run</button>
+    <button id="btnPause" class="btn btn-default">Pause</button>
+    <button id="btnOneRound" class="btn btn-default">Single</button>
+    <button id="btnReset" class="btn btn-default">Reset</button>
+    Speed:
+    <select id="selSpeed" class="form-control" style="width: 100px; display: inline-block;">
+        <option>0.125x</option>
+        <option>0.25x</option>
+        <option>0.5x</option>
+        <option selected>1x</option>
+        <option>2x</option>
+        <option>4x</option>
+        <option>8x</option>
+    </select>
 
-Zoom: 
-<select id="selZoom" class="form-control" style="width: 100px; display: inline-block;">
-    <option selected>1x</option>
-    <option>2x</option>
-    <option>4x</option>
-    <option>8x</option>
-    <option>16x</option>
-</select>
+    Zoom: 
+    <select id="selZoom" class="form-control" style="width: 100px; display: inline-block;">
+        <option selected>1x</option>
+        <option>2x</option>
+        <option>4x</option>
+        <option>8x</option>
+        <option>16x</option>
+    </select>
 </div>
 <div class="sidebar">
     <div id="manager">
         <div class="title-bar">
             <span class="title-bar-text">Manager</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#manager-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#manager-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="manager-content" class="sidebar-section">
@@ -51,12 +51,10 @@ Zoom:
     <div id="orders">
         <div class="title-bar">
             <span class="title-bar-text">Orders</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#orders-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#orders-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="orders-content" class="sidebar-section">
-            <select  class="form-control" id="selOrders"></select>
-            <button id="btnAddOrder" class="btn btn-default">Add order</button><br><br>
             Awaiting orders:
             <div id="awaitingOrders" style="border: 1px solid black; height: 150px; overflow: auto;" >    
             </div>
@@ -71,7 +69,7 @@ Zoom:
     <div id="algorithms">
         <div class="title-bar">
             <span class="title-bar-text">Algorithms</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#algorithms-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#algorithms-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="algorithms-content" class="sidebar-section">
@@ -86,7 +84,7 @@ Zoom:
     <div id="misc">
         <div class="title-bar">
             <span class="title-bar-text">Misc</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#misc-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#misc-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="misc-content" class="sidebar-section">
@@ -98,15 +96,15 @@ Zoom:
     <div id="robots">
         <div class="title-bar">
             <span class="title-bar-text">Robots</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#robots-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#robots-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="robots-content" class="sidebar-section">
             <select  class="form-control" id="selRobots"></select>
             <img id="robotImg" /><br>
             Steps: <span id="robotSteps"></span><br>
-            Away to collect: <span id="robotAwayToCollect"></span><br>
-            Collected: <span id="robotCollected"></span><br>
+            Away to collect: <div id="robotAwayToCollect"></div><br>
+            Collected: <div id="robotCollected"></div><br>
             Coordinates: <span id="robotCoordinates"></span><br>
             <button id="btnDisplayMarks" class="btn btn-default">Display Marks</button>
             <button id="btnClearMarks" class="btn btn-default">Clear Marks</button><br><br>
@@ -115,17 +113,39 @@ Zoom:
     <div id="items">
         <div class="title-bar">
             <span class="title-bar-text">Items</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#items-content')">-</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#items-content')">+</button>
             <div class="clearfix"></div>
         </div>
         <div id="items-content" class="sidebar-section">
             <select  class="form-control" id="selItems"></select>
             <img id="itemImg" /><br>
-            Weight: <span id="itemWeight"></span> oz<br>
+            Weight: <span id="itemWeight"></span> oz.<br>
             Cost: £<span id="itemCost"></span><br>
-            Coordinates: <span id="itemCoordinates"></span><br>
+            Coordinates: <span id="itemCoordinates"></span><br><br>
+            <button id="btnItemAddToBasket" class="btn btn-default">Add to basket</button><br><br>
         </div>
     </div>
+    <div id="basket">
+        <div class="title-bar">
+            <span class="title-bar-text">Basket</span>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#basket-content')">+</button>
+            <div class="clearfix"></div>
+        </div>
+        <div id="basket-content" class="sidebar-section">
+            <select class="form-control" id="selBasket"></select>
+            <button id="btnAddBasket" class="btn btn-default">Add items</button><br><br>
+            Items in basket (id #<span id="basketId"></span>):
+            <div id="basketItems"></div>
+            <br>
+            Item count: <span id="basketCount">0</span><br>
+            Total weight: <span id="basketWeight">0</span> oz.<br>
+            Total cost: £<span id="basketCost">0</span><br>            
+            <br>
+            <button id="btnClearBasket" class="btn btn-default">Clear</button>
+            <button id="btnSubmitBasket" class="btn btn-default">Submit</button><br><br>
+        </div>
+    </div>
+    <div id="sidebar-dummy"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
@@ -163,6 +183,7 @@ var collapseSection = function(btn, section)
 <script type="text/javascript" src="js/graphics-manager.js"></script>
 <script type="text/javascript" src="js/objects.js"></script>
 <script type="text/javascript" src="js/items.js"></script>
+<script type="text/javascript" src="js/order.js"></script>
 <script type="text/javascript" src="js/robot.js"></script>
 <script type="text/javascript" src="js/wall.js"></script>
 <script type="text/javascript" src="js/init.js"></script>
