@@ -3,7 +3,8 @@ var WarehouseManager = function(depot, robots)
 {
     this.robots = robots;
     this.depot = depot;
-    this.algorithm = clarkeWrightSavings;
+    this.vrpFunction = null;
+    this.tspFunction = null;
 
     var self = this;
     for(var i = 0; i < robots.length; i++)
@@ -25,9 +26,14 @@ var WarehouseManager = function(depot, robots)
     this.ordersUpdated = null;
 }
 
-WarehouseManager.prototype.setAlgorithm = function(algorithmFunction)
+WarehouseManager.prototype.setVrpFunction = function(vrp)
 {
-    this.algorithm = algorithmFunction;
+    this.vrpFunction = vrp;
+}
+
+WarehouseManager.prototype.setTspFunction = function(tsp)
+{
+    this.tspFunction = tsp;
 }
 
 WarehouseManager.prototype.makeAction = function()
@@ -62,18 +68,56 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
     var assignments = []
     if(items.length > 0)
     {
-        assignments = this.algorithm(this.depot, items, Robot.capacity);
+        assignments = this.vrpFunction(this.depot, items, Robot.capacity, this.tspFunction);
 
         this.awaitingAssignments = this.awaitingAssignments.concat(assignments);
+
+        var cost = 0;
+        var assignmentPairs = this.pairAwaitingAssignmentsWithRobots();
+        for(var i = 0; i < assignmentPairs.length; i++)
+        {
+            cost += this.calculateAssignmentCost(assignmentPairs[i].robot, assignmentPairs[i].assignment);
+        }
+
+        var unpairedAssignments = this.awaitingAssignments.slice();
+        for(var i = 0; i < assignmentPairs.length; i++)
+        {
+            var index = unpairedAssignments.indexOf(assignmentPairs[i].assignment);
+            unpairedAssignments.splice(index, 1);
+        }
+
+        for(var i = 0; i < unpairedAssignments.length; i++)
+        {
+            cost += this.calculateAssignmentCost(this.depot, unpairedAssignments[i]);
+        }
+
+        console.log("Estimated total cost: " + cost);
     }
 
     console.log("Manager: Created " + assignments.length + " assignments");
 }
 
+WarehouseManager.prototype.calculateAssignmentCost = function(robot, assignment)
+{
+    var cost = 0;
+    var assItems = assignment.items;
+
+    var result = aStar.searchUnrestrictedNextTo(robot, assItems[0]);
+    cost += result.cost;
+
+    for(var j = 1; j < assItems.length; j++)
+    {
+        result = aStar.searchUnrestrictedNextTo(result.tail, assItems[j]);
+        cost += result.cost;
+    }
+
+    cost += aStar.searchUnrestricted(result.tail, robot).cost;
+    return cost;
+}
+/*
 WarehouseManager.prototype.handleAwaitingAssignments = function()
 {
     var availableRobots = this.getAvailableRobots();
-    var j = 0;
 
     if(this.awaitingAssignments.length == 0 || availableRobots.length == 0)
     {
@@ -89,7 +133,8 @@ WarehouseManager.prototype.handleAwaitingAssignments = function()
     while(assignments.length > 0)
     {
         var assignment = assignments[0];
-        var index = findClosestRobotIndex(assignment.items[0], availableRobots);
+
+        var index = this.findClosestRobotIndex(assignment.items[0], availableRobots);
 
         if(index + assignments.length - 1 < availableRobots.length)
         {
@@ -106,24 +151,85 @@ WarehouseManager.prototype.handleAwaitingAssignments = function()
         this.pendingAssignments.push(assignment);
     }    
 
-    function findClosestRobotIndex(item, robots)
-    {
-        var minDist = Number.MAX_VALUE;
-        var index = 0;
-        for(var i = 0; i < robots.length; i++)
-        {
-            var dist = aStarSearchTo(robots[i], item, robots[i]).cost;
-            if(dist && dist < minDist)
-            {
-                minDist = dist;
-                index = i;
-            }
-        }
+    this.raiseEvent(this.ordersUpdated);
+}
+*/
 
-        return index;
-    }
+
+WarehouseManager.prototype.handleAwaitingAssignments = function()
+{
+    var assignmentPairs = this.pairAwaitingAssignmentsWithRobots();
+    
+    for(var i = 0; i < assignmentPairs.length; i++)
+    {
+        var assignment = assignmentPairs[i].assignment;
+        this.assignItemsToRobot(assignmentPairs[i].robot, assignment.items);
+
+        var index = this.awaitingAssignments.indexOf(assignment);
+        this.awaitingAssignments.splice(index, 1);
+        this.pendingAssignments.push(assignment);
+    }    
 
     this.raiseEvent(this.ordersUpdated);
+}
+
+WarehouseManager.prototype.pairAwaitingAssignmentsWithRobots = function()
+{
+    var pairs = [];
+
+    var availableRobots = this.getAvailableRobots();
+
+    if(this.awaitingAssignments.length == 0 || availableRobots.length == 0)
+    {
+        return pairs;
+    }
+
+    var assignments = this.awaitingAssignments.slice();
+    assignments = assignments.splice(0, availableRobots.length);
+    assignments.sort(function(assignmentA, assignmentB)
+    {
+        return assignmentA.items[0].x - assignmentB.items[0].x;
+    });
+    
+    while(assignments.length > 0)
+    {
+        var assignment = assignments[0];
+
+        var index = this.findClosestRobotIndex(assignment.items[0], availableRobots);
+
+        if(index + assignments.length - 1 >= availableRobots.length)
+        {
+            index = assignments.length - availableRobots.length;
+        }
+    
+        pairs.push(
+        {
+            assignment : assignment,
+            robot : availableRobots[index]
+        })
+
+        availableRobots.splice(index, 1);
+        assignments.splice(0, 1);
+    }
+
+    return pairs;
+}
+
+WarehouseManager.prototype.findClosestRobotIndex = function(item, robots)
+{
+    var minDist = Number.MAX_VALUE;
+    var index = 0;
+    for(var i = 0; i < robots.length; i++)
+    {
+        var dist = aStar.search(robots[i], item, robots[i]).cost;
+        if(dist && dist < minDist)
+        {
+            minDist = dist;
+            index = i;
+        }
+    }
+
+    return index;
 }
 
 WarehouseManager.prototype.getAvailableRobots = function()
@@ -176,7 +282,6 @@ WarehouseManager.prototype.acknowledgeOrder = function(order)
 
 WarehouseManager.prototype.receiveItem = function(item)
 {
-    console.log("delivered");
     item.delivered = true;
 
     var pending = false;
@@ -208,4 +313,17 @@ WarehouseManager.prototype.raiseEvent = function(event)
     {
         event();
     }
+}
+
+WarehouseManager.prototype.reset = function()
+{
+    this.awaitingOrders = [];
+    this.pendingOrders = [];
+    this.completedOrders = []
+
+    this.awaitingAssignments = [];
+    this.pendingAssignments = [];
+    this.completedAssignments = [];
+
+    this.raiseEvent(this.ordersUpdated);
 }

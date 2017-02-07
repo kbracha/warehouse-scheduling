@@ -18,6 +18,7 @@ var checkoutTops = []
 var checkoutMiddles = []
 var checkoutBottoms = []
 
+
 $(document).ready(function()
 {
     graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
@@ -61,11 +62,12 @@ $(document).ready(function()
         robots.push(robot); 
     }
 
-    var depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 1 }
+    var depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2 }
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
-    manager.setAlgorithm(clarkeWrightSavings);
+    manager.setVrpFunction(vrp.cws);
+    manager.setTspFunction(tsp.nn);
 
     items = createItemSources(ItemTypes.length);
 
@@ -214,6 +216,20 @@ var getItemSource = function(itemType)
     }
 }
 
+var reset = function()
+{
+    for(var i = 0; i < robots.length; i++)
+    {
+        robots[i].reset();
+        manager.reset();
+    }
+
+    if(running == false)
+    {
+        oneRound = true;
+    }
+}
+
 var bindControls = function()
 {
     $("#btnRun").click(function(e)
@@ -233,7 +249,7 @@ var bindControls = function()
 
     $("#btnReset").click(function(e)
     {
-        setup();
+        reset();
     });
 
     $("#selSpeed").change(function(e)
@@ -489,17 +505,17 @@ var bindControls = function()
     {
         if (this.value == 'Savings') 
         {
-            manager.setAlgorithm(clarkeWrightSavings);
+            manager.setVrpFunction(vrp.cws);
             console.log("savings")
         }
         else if (this.value == 'Sweep') 
         {
-            manager.setAlgorithm(sweep);
+            manager.setVrpFunction(vrp.sweep);
             console.log("sweep")
         }
         else if (this.value == 'Centroid Based') 
         {
-            manager.setAlgorithm(vrpCentroidBased);
+            manager.setVrpFunction(vrp.cb);
             console.log("centroid")
         }
     });
@@ -508,13 +524,18 @@ var bindControls = function()
     {
         if (this.value == 'Nearest Neighbour') 
         {
-            tspAlgorithm = tspNearestNeighbour;
+            manager.setTspFunction(tsp.nn);
             console.log("nn")
         }
         else if (this.value == 'Greedy') 
         {
-            tspAlgorithm = tspGreedy;
+            manager.setTspFunction(tsp.greedy);
             console.log("greedy")
+        }
+        else if (this.value == 'Branch and Bound') 
+        {
+            manager.setTspFunction(tsp.branchAndBound);
+            console.log("branch and bound")
         }
     });
 }

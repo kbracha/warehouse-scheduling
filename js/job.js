@@ -2,14 +2,14 @@
 
 var GoToDestinationJob = function(destination)
 {
-    this.searchFunction = aStarSearchTo;
+    this.searchFunction = aStar.search;
     this.destination = destination;
 }
 
 GoNextToDestinationJob = function() 
 {
     GoToDestinationJob.apply(this, arguments);
-    this.searchFunction = aStarSearchNextTo;
+    this.searchFunction = aStar.searchNextTo;
 }
 
 var FaceObjectJob = function(object)

@@ -274,6 +274,20 @@ Robot.prototype.dropItem = function(item, x ,y)
     graphicsManager.add(item);
 }
 
+Robot.prototype.reset = function()
+{
+    this.isMoving = false;
+    this.currentMoveIteration = 1;
+    this.steps = 0;
+
+    this.jobQueue = [];
+    this.jobData = {};
+    this.backpack = [];   
+    graphicsManager.placeAt(this, this.depot.x + 1, this.depot.y, 0, 0);
+
+    this.setSpriteName(Direction.North);
+}
+
 
 Robot.Names = ["Andy", "Ben", "Chris", "Dean", "Ernie", "Frank", "Greg", "Ian", "John", "Keith", "Lee", "Max", "Nick", "Ollie"]
 

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <!--<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">-->
+    <link rel="stylesheet" type="text/css" href="external/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
 
     <meta charset="UTF-8">
@@ -36,9 +37,10 @@
         <option>8x</option>
         <option>16x</option>
     </select>
+    <button id="btnCheckOrders" class="btn btn-default">Check Orders</button>
 </div>
 <div class="sidebar">
-    <div id="manager">
+    <!--<div id="manager">
         <div class="title-bar">
             <span class="title-bar-text">Manager</span>
             <button class="title-bar-btn" onclick="collapseSection(this, '#manager-content')">+</button>
@@ -47,7 +49,7 @@
         <div id="manager-content" class="sidebar-section">
             <button id="btnCheckOrders" class="btn btn-default">Check Orders</button><br><br>
         </div>
-    </div> 
+    </div> --> 
     <div id="orders">
         <div class="title-bar">
             <span class="title-bar-text">Orders</span>
@@ -80,6 +82,7 @@
             TSP algorithm: <br>
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Nearest Neighbour" checked>Nearest Neighbour</label>
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Greedy">Greedy</label><br><br>
+            <label class="radio-inline"><input type="radio" name="radioTSP" value="Branch and Bound">Branch and Bound</label><br><br>
         </div>
     </div>
     <div id="misc">
@@ -149,8 +152,10 @@
     <div id="sidebar-dummy"></div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script> -->
+<script src="external/js/jquery.min.js"></script>
+<script src="external/js/seedrandom.min.js"></script>
 
 <script>
 
@@ -189,7 +194,20 @@ var collapseSection = function(btn, section)
 <script type="text/javascript" src="js/wall.js"></script>
 <script type="text/javascript" src="js/init.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
-<script type="text/javascript" src="js/algorithms.js"></script>
+<script type="text/javascript" src="js/algorithms/common.js"></script>
+<script type="text/javascript" src="js/algorithms/a-star.js"></script>
+<!-- <script type="text/javascript" src="js/algorithms/branch-and-bound.js"></script> -->
+
+<script type="text/javascript" src="js/algorithms/tsp/christofideles.js"></script>
+<script type="text/javascript" src="js/algorithms/tsp/nearest-neighbour.js"></script>
+<script type="text/javascript" src="js/algorithms/tsp/greedy.js"></script>
+<script type="text/javascript" src="js/algorithms/tsp/branch-and-bound.js"></script>
+
+<script type="text/javascript" src="js/algorithms/vrp/clarke-wright-savings.js"></script>
+<script type="text/javascript" src="js/algorithms/vrp/sweep.js"></script>
+<script type="text/javascript" src="js/algorithms/vrp/centroid-based.js"></script>
+
+
 <script type="text/javascript" src="js/job.js"></script>
 <script type="text/javascript" src="js/warehouse-manager.js"></script>
 
