@@ -62,12 +62,10 @@ var chessboardDistance = function(p1, p2)
     return Math.abs(p1.x - p2.x) + Math.abs(p1.y - p2.y);
 }   
 
-
 var randInt = function(min, max)
 {
     return Math.floor((Math.random() * (max - min + 1)) + min)
 }
-
 
 var Node = function(parent, x, y)
 {
@@ -484,10 +482,6 @@ var constructDistancesMatrix = function(vertices, vehiclesCount)
     return distancesMatrix;
 }
 
-
-var log = false;
-
-
 // https://www.youtube.com/watch?v=A1wsIFDKqBk
 vrpBranchAndBound = function(items, robots)
 {
@@ -563,7 +557,6 @@ vrpBranchAndBound = function(items, robots)
 
     return assignments;
 }
-
 
 var tspCalculateLowerBound = function(matrix, verticesVisited)
 {
@@ -751,8 +744,6 @@ var tspBranchAndBound2 = function(items, distancesMatrix)
     }
 }
 
-
-
 var constructSavingsMatrix = function(depot, vertices)
 {
     var savingsMatrix = createArray(vertices.length, vertices.length);
@@ -802,7 +793,6 @@ var calculateSavings = function(depot, verticeA, verticeB)
     // set a dummy as a hunter to ensure that aStarSearch always finds a path
     return aStarSearchTo(depot, verticeA, calculateSavingsDummy).cost + aStarSearchTo(depot, verticeB, calculateSavingsDummy).cost - aStarSearchTo(verticeA, verticeB, calculateSavingsDummy).cost;
 }
-
 
 var depot = {x: 40, y: 40}
 var vertices = [{x : 22, y: 22, weight: 18}, {x: 36, y: 26, weight: 26}, {x : 21, y: 45, weight: 11}, {x : 45, y: 35, weight: 30}, 
@@ -948,7 +938,6 @@ var clarkeWrightSavings = function(depot, items, robotCapacity)
     return assignments;
 }
 
-
 var sweep = function(depot, items, robotCapacity)
 {
     var itemsOrdered = []
@@ -1019,7 +1008,6 @@ function calculateAngle(depot, point)
 
     return angle;
 }
-
 
 var tspChristofideles = function(robot, items)
 {
@@ -1118,12 +1106,9 @@ var tspNearestNeighbour = function(robot, items)
         cost : Number.MAX_VALUE
     }
 
-    console.log(vertices);
-
     for(var i = 0; i < vertices.length; i++)
     {
         var tour = nearestNeighbourCalculateTour(i, vertices, distancesMatrix);
-        console.log(tour)
 
         if(tour.cost < minTour.cost)
         {
@@ -1261,5 +1246,180 @@ var tspGreedy = function(robot, items)
     }
 }
 
-
 var tspAlgorithm = tspNearestNeighbour;
+
+// A Centroid-Based Heuristic Algorithm For The Capacitated Vehicle Routing Problem
+var vrpCentroidBased = function(depot, items, robotCapacity)
+{
+    var clusters = createClusters(depot, items, robotCapacity);
+    while(adjustClusters(clusters))
+    {
+        console.log(loop);
+    }
+
+    for(var i = 0; i < clusters.length; i++)
+    {
+        for(var j = 0; j < clusters[i].items.length; j++)
+        {
+            delete clusters[i].items[j].centerDistance;
+        }
+
+        clusters[i].items = tspAlgorithm(depot, clusters[i].items);
+    }
+
+    return clusters; // assignments
+}
+
+var createClusters = function(depot, items, robotCapacity)
+{
+    var unclusteredVertices = [];
+
+    for(var i = 0; i < items.length; i++)
+    {
+        unclusteredVertices.push(
+        {
+            item: items[i],
+            distanceDepot: aStarSearchToIgnoreMobile(items[i], depot)
+        });
+    }
+
+    unclusteredVertices.sort(function(vertexA, vertexB)
+    {
+        return vertexA.distanceDepot - vertexB.distanceDepot;
+    });
+
+    var clusters = []
+    var currentCluster = null;
+
+    while(unclusteredVertices.length > 0)
+    {
+        if(currentCluster == null)
+        {
+            currentCluster = 
+            {
+                items: [unclusteredVertices[0].item],
+                center: {
+                    x: unclusteredVertices[0].item.x,
+                    y: unclusteredVertices[0].item.y
+                },
+                weight: unclusteredVertices[0].item.weight
+            }
+
+            clusters.push(currentCluster);
+
+            unclusteredVertices.splice(0, 1);
+            continue;
+        }
+
+        var minVertexIndex = null;
+        var minVertexDistance = Number.MAX_VALUE;
+        for(var i = 0; i < unclusteredVertices.length; i++)
+        {
+            if(unclusteredVertices[i].item.weight + currentCluster.weight <= robotCapacity)
+            {
+                var distance = aStarSearchToIgnoreMobile(currentCluster.center, unclusteredVertices[i].item).cost;
+
+                if(distance < minVertexDistance)
+                {
+                    minVertexIndex = i;
+                    minVertexDistance = distance;
+                }
+            }
+        }
+
+        if(minVertexIndex != null)
+        {
+            var vertex = unclusteredVertices[minVertexIndex];
+
+            addItemToCluster(currentCluster, vertex.item);
+
+            unclusteredVertices.splice(minVertexIndex, 1);
+        }
+        else
+        {
+            currentCluster = null;
+        }
+    }
+
+    for(var i = 0; i < clusters.length; i++)
+    {
+        for(var j = 0; j < clusters[i].items.length; j++)
+        {
+            clusters[i].items[j].centerDistance = aStarSearchToIgnoreMobile(clusters[i].center, clusters[i].items[j]).cost;
+        }
+    }
+
+    return clusters;
+}
+
+var addItemToCluster = function(cluster, item)
+{
+    cluster.items.push(item);
+    cluster.weight += item.weight;
+    updateClusterCentre(cluster);
+}
+
+var removeItemFromCluster = function(cluster, item)
+{
+    var index = cluster.items.indexOf(item);
+    cluter.items.splice(index, 1);
+    cluster.weight -= item.weight;
+    updateClusterCentre(cluster);
+}
+
+var updateClusterCentre = function(cluster)
+{
+    var x = 0, y = 0;
+    for(var i = 0; i < cluster.items.length; i++)
+    {
+        x += cluster.items[i].x;
+        y += cluster.items[i].y;
+    }
+
+    cluster.center.x = Math.floor(x / cluster.items.length);
+    cluster.center.y = Math.floor(y / cluster.items.length);
+}
+
+var adjustClusters = function(clusters, robotCapacity)
+{
+    var adjustmentsMade = false;
+
+    for(var i = 0; i < clusters.length; i++)
+    {
+        var clusterItems = clusters[i].items;
+
+        for(var k = 0; k < clusterItems.length; k++)
+        {
+            for(var j = 0; j < clusters.length; j++)
+            {
+                if(i == j)
+                {
+                    continue;
+                }
+
+                if(clusters[j].weight + clusterItems[k].weight < robotCapacity)
+                {
+                    var distance = aStarSearchToIgnoreMobile(clusters[j].center, clusterItems[k]).cost;
+
+                    if(distance < clusterItems[k].centerDistance)
+                    {
+                        adjustmentsMade = true;
+
+                        removeItemFromCluster(clusters[i], clusterItems[k]);
+                        addItemToCluster(clusters[j], clusterItems[k]);
+                    }
+                }
+            }
+        }
+    }
+
+    return adjustmentsMade;
+}
+
+
+
+
+
+
+
+

@@ -6,7 +6,7 @@ var robotInit;
 var running = false;
 
 var shelfVertices = []
-var robotsCount = 2;
+var robotsCount = 10;
 var selectedRobot = null;
 
 var orders = []
@@ -496,6 +496,11 @@ var bindControls = function()
         {
             manager.setAlgorithm(sweep);
             console.log("sweep")
+        }
+        else if (this.value == 'Centroid Based') 
+        {
+            manager.setAlgorithm(vrpCentroidBased);
+            console.log("centroid")
         }
     });
 
