@@ -155,7 +155,7 @@ cb.calculate = function(depot, items, robotCapacity, tspAlgorithm)
     var clusters = cb.createClusters(depot, items, robotCapacity);
     while(cb.adjustClusters(clusters))
     {
-        console.log(loop);
+        console.log("loop");
     }
 
     for(var i = 0; i < clusters.length; i++)

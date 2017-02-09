@@ -268,3 +268,26 @@ var constructDistancesMatrix = function(vertices)
     return distancesMatrix;
 }
 
+var constructDistancesMatrix2 = function(vertices)
+{
+    var distancesMatrix = createArray(vertices.length, vertices.length);
+
+    for(var i = 0; i < vertices.length; i++)
+    {
+        for(var j = i; j < vertices.length; j++)
+        {
+            if(j == i)
+            {
+                distancesMatrix[vertices[i]][vertices[j]] = Number.MAX_VALUE;
+            }
+            else
+            {
+                var distance = aStar.searchUnrestricted(vertices[i], vertices[j]).cost;
+                distancesMatrix[vertices[i]][vertices[j]] = distance;
+                distancesMatrix[vertices[j]][vertices[i]] = distance;
+            }
+        }
+    }
+
+    return distancesMatrix;
+}

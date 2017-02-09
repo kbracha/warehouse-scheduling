@@ -1,0 +1,57 @@
+{
+	"basketData" : 
+	[
+		{
+			"items" : 
+			[
+				{
+					"name" : "CD",
+					"quantity" : 2
+				},
+				{
+					"name" : "Glass",
+					"quantity" : 1
+				},
+				{
+					"name" : "Toothbrush",
+					"quantity" : 1
+				},
+				{
+					"name" : "Kiwi",
+					"quantity" : 1
+				},
+				{
+					"name" : "Chips",
+					"quantity" : 1
+				},
+				{
+					"name" : "WatermelonSlice",
+					"quantity" : 1
+				},
+				{
+					"name" : "Cinammon",
+					"quantity" : 1
+				},
+				{
+					"name" : "Garlic",
+					"quantity" : 1
+				},
+				{
+					"name" : "Lemon",
+					"quantity" : 1
+				},
+				{
+					"name" : "Pretzel",
+					"quantity" : 1
+				},
+			]
+		}
+	]
+}
+
+
+
+
+
+
+

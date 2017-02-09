@@ -6,7 +6,7 @@ var robotInit;
 var running = false;
 
 var shelfVertices = []
-var robotsCount = 10;
+var robotsCount = 1;
 var selectedRobot = null;
 
 var orders = []
@@ -426,7 +426,6 @@ var bindControls = function()
     {
         var item = $("#selItems").find(":selected").data("item")
         selectItem(item)
-        console.log(selectedItem);
     });
 
     selectRobot(robots[0]);
@@ -440,8 +439,6 @@ var bindControls = function()
 
     $("#btnItemAddToBasket").click(function(e)
     {
-        console.log(selectedItem.getClass());
-        console.log(window[selectedItem.getClass()])
         basketOrder.add(window[selectedItem.getClass()], 1);
         updateBasket();
     });
@@ -536,6 +533,20 @@ var bindControls = function()
         {
             manager.setTspFunction(tsp.branchAndBound);
             console.log("branch and bound")
+        }
+    });
+
+    $("#improvement").change( function()
+    {
+        if($(this).is(':checked'))
+        {
+            manager.useTwoOpt = true;
+            console.log("use")
+        }
+        else
+        {
+            manager.useTwoOpt = false;
+            console.log("not use");
         }
     });
 }

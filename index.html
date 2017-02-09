@@ -83,6 +83,8 @@
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Nearest Neighbour" checked>Nearest Neighbour</label>
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Greedy">Greedy</label><br><br>
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Branch and Bound">Branch and Bound</label><br><br>
+            Improvement algorithms: <br>
+            <input type="checkbox" id="improvement">2-opt<br><br>
         </div>
     </div>
     <div id="misc">
@@ -207,6 +209,7 @@ var collapseSection = function(btn, section)
 <script type="text/javascript" src="js/algorithms/vrp/sweep.js"></script>
 <script type="text/javascript" src="js/algorithms/vrp/centroid-based.js"></script>
 
+<script type="text/javascript" src="js/algorithms/two-opt.js"></script>
 
 <script type="text/javascript" src="js/job.js"></script>
 <script type="text/javascript" src="js/warehouse-manager.js"></script>

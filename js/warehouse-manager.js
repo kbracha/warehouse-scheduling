@@ -5,6 +5,7 @@ var WarehouseManager = function(depot, robots)
     this.depot = depot;
     this.vrpFunction = null;
     this.tspFunction = null;
+    this.useTwoOpt = false;
 
     var self = this;
     for(var i = 0; i < robots.length; i++)
@@ -70,24 +71,37 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
     {
         assignments = this.vrpFunction(this.depot, items, Robot.capacity, this.tspFunction);
 
+        if(this.useTwoOpt == true)
+        {
+            twoOpt.deploy(assignments, this.depot);
+        }
+        
+
         this.awaitingAssignments = this.awaitingAssignments.concat(assignments);
 
         var cost = 0;
         var assignmentPairs = this.pairAwaitingAssignmentsWithRobots();
+        console.log(assignmentPairs)
         for(var i = 0; i < assignmentPairs.length; i++)
         {
+            console.log("A")
+            console.log(i)
             cost += this.calculateAssignmentCost(assignmentPairs[i].robot, assignmentPairs[i].assignment);
         }
 
         var unpairedAssignments = this.awaitingAssignments.slice();
         for(var i = 0; i < assignmentPairs.length; i++)
         {
+            console.log("B")
+            console.log(i)
             var index = unpairedAssignments.indexOf(assignmentPairs[i].assignment);
             unpairedAssignments.splice(index, 1);
         }
 
         for(var i = 0; i < unpairedAssignments.length; i++)
         {
+            console.log("C")
+            console.log(i)
             cost += this.calculateAssignmentCost(this.depot, unpairedAssignments[i]);
         }
 
@@ -199,7 +213,7 @@ WarehouseManager.prototype.pairAwaitingAssignmentsWithRobots = function()
 
         if(index + assignments.length - 1 >= availableRobots.length)
         {
-            index = assignments.length - availableRobots.length;
+            index = availableRobots.length - assignments.length;
         }
     
         pairs.push(
