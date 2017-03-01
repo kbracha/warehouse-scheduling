@@ -2,6 +2,7 @@
 <html>
 <head>
     <!--<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="external/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
 
@@ -38,36 +39,9 @@
         <option>16x</option>
     </select>
     <button id="btnCheckOrders" class="btn btn-default">Check Orders</button>
+    <button id="btnViewOrders" class="btn btn-default">View Orders</button>
 </div>
 <div class="sidebar">
-    <!--<div id="manager">
-        <div class="title-bar">
-            <span class="title-bar-text">Manager</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#manager-content')">+</button>
-            <div class="clearfix"></div>
-        </div>
-        <div id="manager-content" class="sidebar-section">
-            <button id="btnCheckOrders" class="btn btn-default">Check Orders</button><br><br>
-        </div>
-    </div> --> 
-    <div id="orders">
-        <div class="title-bar">
-            <span class="title-bar-text">Orders</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#orders-content')">+</button>
-            <div class="clearfix"></div>
-        </div>
-        <div id="orders-content" class="sidebar-section">
-            Awaiting orders:
-            <div id="awaitingOrders" style="border: 1px solid black; height: 150px; overflow: auto;" >    
-            </div>
-            Pending orders:
-            <div id="pendingOrders" style="border: 1px solid black; height: 150px; overflow: auto;">
-            </div>
-            Completed orders:
-            <div id="completedOrders" style="border: 1px solid black; height: 150px; overflow: auto;">
-            </div>
-        </div>
-    </div> 
     <div id="algorithms">
         <div class="title-bar">
             <span class="title-bar-text">Algorithms</span>
@@ -97,6 +71,7 @@
             Steps: <span id="steps">0</span> <button id="btnResetSteps" class="btn btn-default">Reset</button><br><br>
             <button id="btnDisplayAllMarks" class="btn btn-default">Display All Marks</button>
             <button id="btnClearAllMarks" class="btn btn-default">Clear Marks</button><br><br>
+            <input type="checkbox" id="autoOrder">Automatically add orders<br><br>
         </div>
     </div>
     <div id="robots">
@@ -154,9 +129,39 @@
     <div id="sidebar-dummy"></div>
 </div>
 
+<div id="orders">
+    <div id="orders-list" class="panel panel-default">
+        <div id="awaitingOrdersHeader" class="orders-header panel-heading awaitingOrders">Awaiting orders (0)</div>
+        <div id="awaitingOrders" >    
+        </div>
+        <div id="pendingOrdersHeader" class="orders-header panel-heading">Pending orders (0)</div>
+        <div id="pendingOrders">
+        </div>
+        <div id="completedOrdersHeader" class="orders-header panel-heading">Completed orders (0)</div>
+        <div id="completedOrders">
+        </div>
+    </div>
+    <div id="orders-info">
+        <table class="table table-striped">
+           <thead>
+             <tr>
+               <th>Item</th>
+               <th>Quantity</th>
+               <th>Picker</th>
+               <th>Status</th>
+             </tr>
+           </thead>
+           <tbody id="orders-info-table">
+           </tbody>
+        </table>
+    </div>
+    <div class="clearfix"></div>
+</div> 
+
 <!-- <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/seedrandom.min.js"></script> -->
 <script src="external/js/jquery.min.js"></script>
+<script src="external/js/jquery-ui.min.js"></script>
 <script src="external/js/seedrandom.min.js"></script>
 
 <script>

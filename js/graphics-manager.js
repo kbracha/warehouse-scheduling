@@ -36,10 +36,15 @@ GraphicsManager.prototype.remove = function(object)
     }
 }
 
-GraphicsManager.prototype.setScale = function(scale)
+GraphicsManager.prototype.setScale = function(scaleX, scaleY)
 {
-    this.scaleX = scale;
-    this.scaleY = scale;    
+    if(scaleY == undefined)
+    {
+        scaleY = scaleX;
+    }
+
+    this.scaleX = scaleX;
+    this.scaleY = scaleY;    
     this.redraw();
 }
 

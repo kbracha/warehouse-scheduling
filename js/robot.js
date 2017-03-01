@@ -19,7 +19,7 @@ var Robot = function()
     this.setSpritePath('img/robot')
 
     this.width = 1;
-    this.height = 1.5;
+    this.height = 1;
 
     this.name = Robot.Names[Robot.count];
     Robot.count += 1;

@@ -180,16 +180,19 @@ var buildWarehouse2 = function(scheme, manager)
             {
                 if(scheme[scheme.length - 1 - y][x] == Shelf)
                 {
-                    var obj = new Tile();
+                    //var obj = new Tile();
+                    //obj.y = y;
+                    //obj.x = x;
+                    //manager.add(obj);
+                }
+
+                if(scheme[scheme.length - 1 - y][x] != Tile)
+                {
+                    var obj = new scheme[scheme.length - 1 - y][x]();
                     obj.y = y;
                     obj.x = x;
                     manager.add(obj);
                 }
-
-                var obj = new scheme[scheme.length - 1 - y][x]();
-                obj.y = y;
-                obj.x = x;
-                manager.add(obj);
             }
         }
     }

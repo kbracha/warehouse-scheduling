@@ -2,7 +2,7 @@
 
 var twoOpt = {}
 
-
+// source: transportation logistics.pdf
 twoOpt.tryImprove = function(items, depot)
 {
     var vertices = items.slice();

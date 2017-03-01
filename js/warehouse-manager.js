@@ -84,24 +84,18 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
         console.log(assignmentPairs)
         for(var i = 0; i < assignmentPairs.length; i++)
         {
-            console.log("A")
-            console.log(i)
             cost += this.calculateAssignmentCost(assignmentPairs[i].robot, assignmentPairs[i].assignment);
         }
 
         var unpairedAssignments = this.awaitingAssignments.slice();
         for(var i = 0; i < assignmentPairs.length; i++)
         {
-            console.log("B")
-            console.log(i)
             var index = unpairedAssignments.indexOf(assignmentPairs[i].assignment);
             unpairedAssignments.splice(index, 1);
         }
 
         for(var i = 0; i < unpairedAssignments.length; i++)
         {
-            console.log("C")
-            console.log(i)
             cost += this.calculateAssignmentCost(this.depot, unpairedAssignments[i]);
         }
 
@@ -184,7 +178,10 @@ WarehouseManager.prototype.handleAwaitingAssignments = function()
         this.pendingAssignments.push(assignment);
     }    
 
-    this.raiseEvent(this.ordersUpdated);
+    if(assignmentPairs.length != 0)
+    {
+        this.raiseEvent(this.ordersUpdated);
+    }
 }
 
 WarehouseManager.prototype.pairAwaitingAssignmentsWithRobots = function()

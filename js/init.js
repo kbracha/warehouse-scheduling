@@ -5,8 +5,10 @@ var manager;
 var robotInit;
 var running = false;
 
+var autoOrder = false;
+
 var shelfVertices = []
-var robotsCount = 1;
+var robotsCount = 10;
 var selectedRobot = null;
 
 var orders = []
@@ -18,15 +20,21 @@ var checkoutTops = []
 var checkoutMiddles = []
 var checkoutBottoms = []
 
+var baseScaleX;
+var baseScaleY;
+
 
 $(document).ready(function()
 {
     graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
-    //var h = $(window).height() / getWarehouseSchemeHeight();
-    //var w = $(window).width() / getWarehouseSchemeWidth();
-    console.log($(window).width() / $(window).height()) // 2.1080246913580245
-    //graphicsManager.scaleY = h;
-    //graphicsManager.scaleX = w;
+    baseScaleY = ($(window).height() - 20) / getWarehouseSchemeHeight();
+    baseScaleX = ($(window).width() - $(".sidebar").width() - 20) / getWarehouseSchemeWidth();
+
+    $("#simulation").css("max-height", $(window).height());
+    $("#simulation").css("max-width", $(window).width() - $(".sidebar").width());
+
+    graphicsManager.scaleY = baseScaleY;
+    graphicsManager.scaleX = baseScaleX;
     
     buildWarehouse2(warehouseScheme2, graphicsManager);
 
@@ -66,7 +74,7 @@ $(document).ready(function()
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
-    manager.setVrpFunction(vrp.cws);
+    manager.setVrpFunction(vrp.sweep);
     manager.setTspFunction(tsp.nn);
 
     items = createItemSources(ItemTypes.length);
@@ -132,6 +140,7 @@ var displayRouteMarks = function(robot)
 var frames = 0;
 var framesPerAction = 8;
 var oneRound = false;
+var idleRobots = true;
 var simulate = function() 
 {
     if(running || oneRound)
@@ -173,9 +182,40 @@ var simulate = function()
                 }
             }
 
-            updateTotalSteps();
+            idleRobots = false;
+            var steps = 0;
+            for(var i = 0; i < robots.length; i ++)
+            {
+                var wasIdle = !robots[i].isBusy();
+
+                robots[i].makeAction();
+
+                if(wasIdle && robots[i].isBusy() == false)
+                {
+                    idleRobots = true;
+                }
+
+                steps += robots[i].steps;
+            
+                $("#steps").text(steps);
+            }
+
             updateSelectedRobot();
         }
+    }
+
+    if(autoOrder && idleRobots)
+    {
+        var randOrders = createRandomOrders();
+
+        console.log(randOrders);
+
+        for(var i = 0; i < randOrders.length; i++)
+        {
+            manager.acknowledgeOrder(randOrders[i]);
+        }
+
+        idleRobots = false;
     }
 
     requestAnimationFrame(simulate);
@@ -289,27 +329,30 @@ var bindControls = function()
     $("#selZoom").change(function(e)
     {
         var val = $("#selZoom").val()
-        
+        var factor;
+
         if(val == "1x")
         {
-            graphicsManager.setScale(10);
+            factor = 1;
         }
         else if(val == "2x")
         {
-            graphicsManager.setScale(20);
+            factor = 2;
         }
         else if(val == "4x")
         {
-            graphicsManager.setScale(40);
+            factor = 4;
         }
         else if(val == "8x")
         {
-            graphicsManager.setScale(80);
+            factor = 8;
         }
         else if(val == "16x")
         {
-            graphicsManager.setScale(160);
+            factor = 16;
         }
+
+        graphicsManager.setScale(baseScaleX * factor, baseScaleY * factor);
 
         console.log(framesPerAction)
     });
@@ -327,37 +370,36 @@ var bindControls = function()
         var relX = e.pageX - simOffset.left;
         var relY = e.pageY - simOffset.top;
 
-        var scale = graphicsManager.getScaleX();
+        var scaleX = graphicsManager.getScaleX();
         var action = 0;
 
         if (e.originalEvent.wheelDelta > 0 || e.originalEvent.detail < 0) 
         {
-            if(scale != 160)
+            if(scaleX != baseScaleX * 16)
             {
                 action = 2;
             }
         }
         else 
         {
-            if(scale != 10)
+            if(scaleX != baseScaleX)
             {
                 action = 0.5;
             }
         }
 
-        
         if(action != 0)
         {
             var off = $("#simulation").offset(); 
             var offY = e.pageY - off.top;
             var offX = e.pageX - off.left;
 
-            var val = action * scale;
-            $("#selZoom").val(val / 10 + "x");
+            var val = action * (scaleX / baseScaleX);
+            $("#selZoom").val(val + "x");
 
             var scrTop = $("#simulation").scrollTop()
             var scrLeft = $("#simulation").scrollLeft()
-            graphicsManager.setScale(val);
+            graphicsManager.setScale(val * baseScaleX, val * baseScaleY);
 
             if(action == 2)
             {
@@ -549,6 +591,29 @@ var bindControls = function()
             console.log("not use");
         }
     });
+
+    $("#autoOrder").change( function()
+    {
+        if($(this).is(':checked'))
+        {
+            autoOrder = true;
+        }
+        else
+        {
+            autoOrder = false
+        }
+    });
+
+    $( "#orders" ).dialog({ 
+        autoOpen: false,
+        title: "View orders",
+        width: 800,
+        height: 500
+    });
+    $("#btnViewOrders").click(function(e)
+    {
+        $( "#orders" ).dialog( "open" );
+    });
 }
 
 var basketOrder = new Order();
@@ -649,75 +714,172 @@ var changeRobotSelection = function(robotName)
 var updateOrdersInfo = function()
 {
     $("#awaitingOrders").empty();
+    var selectedId = $(".orders-entry-selected").data("order-id");
 
     var awaitingOrders = manager.awaitingOrders;
     for(var i = 0; i < awaitingOrders.length; i++)
     {
-         $("#awaitingOrders").append("<b>Order #" + awaitingOrders[i].id + "</b><br>");
-         var itemsInfo = awaitingOrders[i].getItemsInfo();
-         
-         for(var key in itemsInfo)
-         {
-             $("#awaitingOrders").append("&nbsp;&nbsp;-" + makeItemLink(itemsInfo[key].itemType.name) + " x " + itemsInfo[key].quantity + "<br>");
-         }
+         $("#awaitingOrders").append(createOrderEntry(awaitingOrders[i].id));
     }
+
+    $("#awaitingOrdersHeader").text("Awaiting orders (" + awaitingOrders.length + ")");
 
     $("#pendingOrders").empty();
 
     var pendingOrders = manager.pendingOrders;
     for(var i = 0; i < pendingOrders.length; i++)
     {
-         $("#pendingOrders").append("<b>Order #" + pendingOrders[i].id + "</b><br>");
-         var items = pendingOrders[i].getItems();
-         
-         for(var j = 0; j < items.length; j++)
-         {
-             var status;
-             var picker = items[j].picker;
-             if(picker != null)
-             {
-                 if(items[j].delivered == true)
-                 {
-                     status = "delivered by " + makeRobotLink(picker.name);
-                 }
-                 else
-                 {
-                    status = "fetched by " + makeRobotLink(picker.name);
-                 }    
-             }
-             else
-             {
-                 status = "waiting for assignment";
-             }
-
-             $("#pendingOrders").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : " + status + "<br>");
-         }        
+         $("#pendingOrders").append(createOrderEntry(pendingOrders[i].id));      
     }
+
+    $("#pendingOrdersHeader").text("Pending orders (" + pendingOrders.length + ")");
 
     $("#completedOrders").empty();
 
     var completedOrders = manager.completedOrders;
     for(var i = 0; i < completedOrders.length; i++)
     {
-         $("#completedOrders").append("<b>Order #" + completedOrders[i].id + "</b><br>");
-         var items = completedOrders[i].getItems();
+         $("#completedOrders").append(createOrderEntry(completedOrders[i].id));    
+    }
+
+    $("#completedOrdersHeader").text("Completed orders (" + completedOrders.length + ")");
+
+    if(selectedId != null)
+    {
+        $("#orders-info-table").empty();
+        displayOrder(selectedId);
+    }
+
+    $(".orders-entry").click(function()
+    {
+        $(".orders-entry-selected").removeClass("orders-entry-selected");
+        $(this).addClass("orders-entry-selected"); 
+
+        $("#orders-info-table").empty();
+
+        var id = $(this).data("order-id");
+        
+        displayOrder(id);
+    });
+
+    function createOrderEntry(id)
+    {
+        var el = $("<div class='orders-entry ' data-order-id='" + id + "'>Order #" + id + "</div>");
+
+        if(id == selectedId)
+        {
+            $(el).addClass("orders-entry-selected");
+        }
+
+        return el;
+    }
+
+    function displayOrder(id)
+    {
+        for(var i = 0; i < manager.awaitingOrders.length; i++)
+        {
+             if(manager.awaitingOrders[i].id == id)
+             {
+                 displayAwaitingOrder(manager.awaitingOrders[i]);
+                 return;
+             }
+        }   
+
+        for(var i = 0; i < manager.pendingOrders.length; i++)
+        {
+             if(manager.pendingOrders[i].id == id)
+             {
+                 displayPendingOrder(manager.pendingOrders[i]);
+                 return;
+             }
+        }   
+
+        for(var i = 0; i < manager.completedOrders.length; i++)
+        {
+             if(manager.completedOrders[i].id == id)
+             {
+                 displayCompletedOrder(manager.completedOrders[i]);
+                 return;
+             }
+        }  
+    }
+
+    function displayAwaitingOrder(order)
+    {
+        var itemsInfo = order.getItemsInfo();
+         
+        for(var key in itemsInfo)
+        {
+             //$("#orders-info").append("&nbsp;&nbsp;-" + makeItemLink(itemsInfo[key].itemType.name) + " x " + itemsInfo[key].quantity + "<br>");
+             addTableEntry(itemsInfo[key].itemType.name, itemsInfo[key].quantity, null, "");
+        }
+    }
+
+    function displayPendingOrder(order)
+    {
+         var items = order.getItems();
          
          for(var j = 0; j < items.length; j++)
          {
-             $("#completedOrders").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : delivered by " + makeRobotLink(items[j].picker.name) + "<br>");
-         }        
+             var status;
+             var picker = items[j].picker;
+             var pickerName = null;
+             if(picker != null)
+             {
+                 pickerName = picker.name;
+
+                 if(items[j].delivered == true)
+                 {
+                     //status = "delivered" + makeRobotLink(picker.name);
+                     status = "delivered";
+                 }
+                 else
+                 {
+                    if(picker.backpack.indexOf(items[j]) != -1)
+                    {
+                        status = "carried";
+                    }
+                    else
+                    {
+                        status = "on shelf";
+                    }
+                    //status = "fetched by " + makeRobotLink(picker.name);
+                 }    
+             }
+             else
+             {
+                 //status = "waiting for assignment";
+                 status = "unassigned"
+             }
+         
+             addTableEntry(items[j].getClass(), 1, pickerName, status);
+             //$("#orders-info").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : " + status + "<br>");
+         }          
     }
-}
 
-var updateTotalSteps = function()
-{
-    var steps = 0;
-    for(var i = 0; i < robots.length; i ++)
+    function displayCompletedOrder(order)
     {
-        robots[i].makeAction()
-        steps += robots[i].steps;
+        var items = order.getItems();
 
-        $("#steps").text(steps);
+        for(var j = 0; j < items.length; j++)
+        {
+            addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
+        }            
+    }
+
+    function addTableEntry(itemName, quantity, pickerName, status)
+    {
+        if(pickerName != null)
+        {
+            pickerName = makeRobotLink(pickerName);
+        }
+        else
+        {
+            pickerName = "";
+        }
+
+        $("#orders-info-table").append("<tr><td class='text-center'>" + makeItemLink(itemName) +"</td><td class='text-center'>" + quantity + "</td>"
+                                     + "<td class='text-center'>" + pickerName + "</td><td class='text-center'>" + status + "</td></tr>");
     }
 }
 
@@ -800,3 +962,36 @@ var updateSelectedRobot = function()
     selectRobot(selectedRobot);
 }
 
+var createRandomOrders = function()
+{
+    console.log("Detected free robots and no assignments awaiting. Auto ordering is on.");
+    var orders = [];
+    var orderCount = randInt(1, 10);
+
+    for(var i = 0; i < orderCount; i++)
+    {
+        var order = createRandomOrder();
+        orders.push(order);
+    }
+
+    console.log("Created " + orderCount + " orders");
+
+    return orders;
+}
+
+var createRandomOrder = function()
+{
+    var order = new Order();
+
+    var itemsCount = randInt(1, 10);
+
+    for(var i = 0; i < itemsCount; i++)
+    {
+        var index = randInt(0, ItemTypes.length - 1);
+        order.add(ItemTypes[index], 1);
+    }
+
+    order.finalize(getItemSource);
+
+    return order;
+}

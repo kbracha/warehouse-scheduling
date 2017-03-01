@@ -291,3 +291,10 @@ var constructDistancesMatrix2 = function(vertices)
 
     return distancesMatrix;
 }
+
+
+
+
+
+
+
