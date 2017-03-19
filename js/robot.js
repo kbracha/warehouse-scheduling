@@ -32,7 +32,7 @@ var Robot = function()
     this.itemReturned = null;
     this.itemCollected = null;
 
-    this.steps = 0;
+    this.steps = 0; 
 }
 
 
