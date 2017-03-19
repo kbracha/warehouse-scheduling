@@ -220,43 +220,39 @@ twoOpt.createVertices = function(edges)
     return vertices;
 }
 
-twoOpt.deploy = function(assignments, depot)
+twoOpt.deploy = function(items, depot)
 {
-    for(var i = 0; i < assignments.length; i++)
+    var packedItems = itemsToVertices(items);    
+
+    while(true)
     {
-        var items = assignments[i].items;
-        var packedItems = itemsToVertices(assignments[i].items);
+        var result = twoOpt.tryImprove(packedItems, depot)
 
-        while(true)
+        if(result.improvementMade == true)
         {
-            var result = twoOpt.tryImprove(packedItems, depot)
-            
-            if(result.improvementMade == true)
-            {
-                var vertices = result.vertices;
-                console.log("vertices:")
-                console.log(vertices.slice())
-
-                var index = vertices.indexOf(depot);
-                var tail = vertices.splice(0, index);
-                console.log("tail:")
-                console.log(tail)
-                var head = vertices.splice(1, vertices.length - 1);
-                console.log("head:")
-                console.log(head)
-                head = head.concat(tail);
-                console.log("all:")
-                console.log(head)
-
-                packedItems = head;
-                assignments[i].items = itemsFromVertices(head, items);
-            }
-            else
-            {
-                break;
-            }
+            var vertices = result.vertices;
+            console.log("vertices:")
+            console.log(vertices.slice())   
+            var index = vertices.indexOf(depot);
+            var tail = vertices.splice(0, index);
+            console.log("tail:")
+            console.log(tail)
+            var head = vertices.splice(1, vertices.length - 1);
+            console.log("head:")
+            console.log(head)
+            head = head.concat(tail);
+            console.log("all:")
+            console.log(head)   
+            packedItems = head;
+            items = itemsFromVertices(packedItems, items);
+        }
+        else
+        {
+            break;
         }
     }
+
+    return items;
 }
 
 

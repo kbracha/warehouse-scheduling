@@ -3,6 +3,7 @@ var Order = function()
     this.itemsInfo = {};
     this.items = [];
     this.assigned = false;
+    this.cancelled = false;
 
     this.id = 1000 + Order.count;
     Order.count += 1;

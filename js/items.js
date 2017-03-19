@@ -11,6 +11,7 @@ var Item = function()
     this.order = null;
     this.picker = null;
     this.delivered = false;
+    this.returned = false;
 }
 extend(Item, StaticObject);
 Item.prototype.weight = 5;

@@ -65,9 +65,7 @@ nn.calculateTour = function(startingVertexIndex, vertices, distancesMatrix)
     }
 
     cost += distancesMatrix[minVertexIndex][startingVertexIndex]
-
-    console.log(usedVertices);
-
+    
     return {
         cost : cost,
         vertices : usedVertices

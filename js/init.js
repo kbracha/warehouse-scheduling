@@ -8,13 +8,15 @@ var running = false;
 var autoOrder = false;
 
 var shelfVertices = []
-var robotsCount = 10;
+var robotsCount = 1;
 var selectedRobot = null;
 
 var orders = []
 var robots = []
 var items = []
 var selectedItem = null;
+
+var selectedOrder = null;
 
 var checkoutTops = []
 var checkoutMiddles = []
@@ -23,9 +25,17 @@ var checkoutBottoms = []
 var baseScaleX;
 var baseScaleY;
 
+var depot;
+
+var maxOrders = Number.MAX_VALUE;
+
+var xorgen;
 
 $(document).ready(function()
 {
+    //Math.seedrandom('test');
+    xorgen = new xor4096('test.');
+
     graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
     baseScaleY = ($(window).height() - 20) / getWarehouseSchemeHeight();
     baseScaleX = ($(window).width() - $(".sidebar").width() - 20) / getWarehouseSchemeWidth();
@@ -64,13 +74,14 @@ $(document).ready(function()
         robot.x = startX + i + 1;
         robot.y = 2;
 
-        robot.depot = { x : checkoutTop.x, y : checkoutTop.y }
+        robot.depot = { x : checkoutTop.x, y : checkoutTop.y };
+        robot.depotStand = { x : checkoutTop.x + 1, y : checkoutTop.y}
 
         graphicsManager.add(robot);
         robots.push(robot); 
     }
 
-    var depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2 }
+    depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2 }
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
@@ -87,6 +98,8 @@ $(document).ready(function()
             populateBasketList(data);
         }
     });
+
+    itemsInit();
 
     $("#simulation").focus();
     bindControls();
@@ -204,16 +217,27 @@ var simulate = function()
         }
     }
 
-    if(autoOrder && idleRobots)
+    if(autoOrder && idleRobots && orders.length < maxOrders)
     {
+        console.log("Detected free robots and no assignments awaiting. Auto ordering is on.");
+
         var randOrders = createRandomOrders();
 
-        console.log(randOrders);
+        if(orders.length + randOrders.length > maxOrders)
+        {
+            randOrders = randOrders.splice(0, maxOrders - orders.length);
+        }
+
+        console.log("Created " + randOrders.length + " orders");
 
         for(var i = 0; i < randOrders.length; i++)
         {
             manager.acknowledgeOrder(randOrders[i]);
         }
+        
+        orders = orders.concat(randOrders);
+
+        $("#orderCount").text(orders.length);
 
         idleRobots = false;
     }
@@ -221,11 +245,9 @@ var simulate = function()
     requestAnimationFrame(simulate);
 }
 
-
 var createItemSources = function(count)
 {
     var shelfVertices = graphicsManager.getObjects(Shelf);
-    Math.seedrandom('test');
     
     var items = []
 
@@ -507,6 +529,7 @@ var bindControls = function()
     {
         basketOrder.finalize(getItemSource);
         manager.acknowledgeOrder(basketOrder);
+        orders.add(basketOrder);
         basketOrder = new Order();
         updateBasket();
     });
@@ -610,10 +633,34 @@ var bindControls = function()
         width: 800,
         height: 500
     });
+
     $("#btnViewOrders").click(function(e)
     {
-        $( "#orders" ).dialog( "open" );
+        $("#orders").dialog( "open" );
     });
+
+    $("#selItemsPlacement").change(function(e) 
+    {
+        var val = $("#selItemsPlacement").find(":selected").val();
+
+        if(val == "Random")
+        {
+            placeItemsRandom();
+        }
+        else
+        {
+            placeItemsByPopularity();
+        }
+        
+        selectItem(selectedItem);
+    });
+
+    $("#btnSetMaxOrders").click(function(e)
+    {
+        maxOrders = $("#maxOrders").val();
+    })
+
+    $("#btnCancelOrder").click(cancelOrder);
 }
 
 var basketOrder = new Order();
@@ -715,6 +762,7 @@ var updateOrdersInfo = function()
 {
     $("#awaitingOrders").empty();
     var selectedId = $(".orders-entry-selected").data("order-id");
+    selectedOrder = null;
 
     var awaitingOrders = manager.awaitingOrders;
     for(var i = 0; i < awaitingOrders.length; i++)
@@ -744,9 +792,12 @@ var updateOrdersInfo = function()
 
     $("#completedOrdersHeader").text("Completed orders (" + completedOrders.length + ")");
 
-    if(selectedId != null)
+    $("#orders-info-table").empty();
+    $("#btnCancelOrder").css("display", "none"); 
+    $("#lblCancelOrder").css("display", "none");   
+
+    if(selectedId)
     {
-        $("#orders-info-table").empty();
         displayOrder(selectedId);
     }
 
@@ -756,11 +807,15 @@ var updateOrdersInfo = function()
         $(this).addClass("orders-entry-selected"); 
 
         $("#orders-info-table").empty();
+        $("#btnCancelOrder").css("display", "none"); 
+        $("#lblCancelOrder").css("display", "none");    
 
         var id = $(this).data("order-id");
         
         displayOrder(id);
     });
+
+    updateSelectedRobot();
 
     function createOrderEntry(id)
     {
@@ -780,6 +835,7 @@ var updateOrdersInfo = function()
         {
              if(manager.awaitingOrders[i].id == id)
              {
+                 selectedOrder = manager.awaitingOrders[i];
                  displayAwaitingOrder(manager.awaitingOrders[i]);
                  return;
              }
@@ -789,6 +845,7 @@ var updateOrdersInfo = function()
         {
              if(manager.pendingOrders[i].id == id)
              {
+                 selectedOrder = manager.pendingOrders[i];
                  displayPendingOrder(manager.pendingOrders[i]);
                  return;
              }
@@ -798,6 +855,7 @@ var updateOrdersInfo = function()
         {
              if(manager.completedOrders[i].id == id)
              {
+                 selectedOrder = manager.completedOrders[i];
                  displayCompletedOrder(manager.completedOrders[i]);
                  return;
              }
@@ -810,9 +868,10 @@ var updateOrdersInfo = function()
          
         for(var key in itemsInfo)
         {
-             //$("#orders-info").append("&nbsp;&nbsp;-" + makeItemLink(itemsInfo[key].itemType.name) + " x " + itemsInfo[key].quantity + "<br>");
-             addTableEntry(itemsInfo[key].itemType.name, itemsInfo[key].quantity, null, "");
+            addTableEntry(itemsInfo[key].itemType.name, itemsInfo[key].quantity, null, "");
         }
+
+        $("#btnCancelOrder").css("display", "block");
     }
 
     function displayPendingOrder(order)
@@ -830,7 +889,6 @@ var updateOrdersInfo = function()
 
                  if(items[j].delivered == true)
                  {
-                     //status = "delivered" + makeRobotLink(picker.name);
                      status = "delivered";
                  }
                  else
@@ -839,32 +897,77 @@ var updateOrdersInfo = function()
                     {
                         status = "carried";
                     }
+                    else if(items[j].order.cancelled == false)
+                    {
+                        status = "will be picked";
+                    }
+                    else if(items[j].returned == true)
+                    {
+                        status = "returned";
+                    }
                     else
                     {
-                        status = "on shelf";
+                        status = "pickup abandoned";
                     }
-                    //status = "fetched by " + makeRobotLink(picker.name);
                  }    
              }
              else
              {
-                 //status = "waiting for assignment";
                  status = "unassigned"
              }
          
              addTableEntry(items[j].getClass(), 1, pickerName, status);
-             //$("#orders-info").append("&nbsp;&nbsp;-" + makeItemLink(items[j].getClass()) + " : " + status + "<br>");
-         }          
+         }
+
+         if(order.cancelled == false)
+         {
+             $("#btnCancelOrder").css("display", "block");
+         }
+         else
+         {
+             $("#lblCancelOrder").css("display", "block");
+         }                  
     }
 
     function displayCompletedOrder(order)
     {
         var items = order.getItems();
 
-        for(var j = 0; j < items.length; j++)
+        if(order.cancelled == false)
         {
-            addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
-        }            
+            for(var j = 0; j < items.length; j++)
+            {
+                addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
+            }
+        }   
+        else
+        {
+            for(var j = 0; j < items.length; j++)
+            {
+                var pickerName = null, status = "unassigned";
+                if(items[j].picker != null)
+                {
+                    pickerName = items[j].picker.name;
+
+                    if(items[j].delivered == true)
+                    {
+                        status = "delivered";
+                    }
+                    else if(items[j].returned == true)
+                    {
+                        status = "returned";
+                    }
+                    else
+                    {
+                        status = "pickup abandoned";
+                    }
+                }
+
+                addTableEntry(items[j].getClass(), 1, pickerName, status);
+            }            
+
+            $("#lblCancelOrder").css("display", "block");
+        }          
     }
 
     function addTableEntry(itemName, quantity, pickerName, status)
@@ -883,6 +986,11 @@ var updateOrdersInfo = function()
     }
 }
 
+var cancelOrder = function()
+{
+    manager.cancelOrder(selectedOrder);
+}
+
 var selectRobot = function(robot)
 {
     if(selectedRobot != null)
@@ -897,25 +1005,12 @@ var selectRobot = function(robot)
 
     $("#robotSteps").text(robot.steps);
 
-    var carries;
-    var itemsCarried = robot.returnItemsCollected();
-    if(itemsCarried.length != 0)
-    {
-        carries = itemsCarried[0].getClass();
-        for(var i = 1; i < itemsCarried.length; i++)
-        {
-            carries += ", " + itemsCarried[i].getClass();
-        }
-    }
-    else
-    {
-        carries = "Nothing";
-    }
-
     $("#robotAwayToCollect").empty();
     $("#robotAwayToCollect").append(makeItemsString(robot.returnItemsToCollect()));
     $("#robotCollected").empty();
     $("#robotCollected").append(makeItemsString(robot.returnItemsCollected()));
+    $("#robotAwayToReturn").empty();
+    $("#robotAwayToReturn").append(makeItemsString(robot.returnItemsToReturn()));
 
     $("#robotCoordinates").text("(" + robot.x + ", " + robot.y + ")");
 
@@ -952,7 +1047,7 @@ var selectItem = function(item)
     $("#itemImg").attr("src", item.spriteUrl);  
 
     $("#itemWeight").text(item.weight); 
-    $("#itemCost").text(item.cost); 
+    $("#itemPopularity").text(item.popularity); 
 
     $("#itemCoordinates").text("(" + item.x + ", " + item.y + ")");
 }
@@ -964,19 +1059,18 @@ var updateSelectedRobot = function()
 
 var createRandomOrders = function()
 {
-    console.log("Detected free robots and no assignments awaiting. Auto ordering is on.");
-    var orders = [];
+    var newOrders = [];
     var orderCount = randInt(1, 10);
+
+    console.log(orderCount)
 
     for(var i = 0; i < orderCount; i++)
     {
         var order = createRandomOrder();
-        orders.push(order);
+        newOrders.push(order);
     }
 
-    console.log("Created " + orderCount + " orders");
-
-    return orders;
+    return newOrders;
 }
 
 var createRandomOrder = function()
@@ -987,11 +1081,126 @@ var createRandomOrder = function()
 
     for(var i = 0; i < itemsCount; i++)
     {
-        var index = randInt(0, ItemTypes.length - 1);
-        order.add(ItemTypes[index], 1);
+        var index = randInt(0, popularityTable.length - 1);
+        order.add(popularityTable[index], 1);
     }
 
     order.finalize(getItemSource);
 
     return order;
+}
+
+var itemsRandomLocation = []
+var itemsPopularityBasedLocation = []
+var itemsInit = function()
+{
+    applyPopularityToItems();
+
+    for(var i = 0; i < items.length; i++)
+    {
+        itemsRandomLocation[i] = { x : items[i].x, y : items[i].y }
+    }
+
+    var itemsByDistances = getItemLocationsByDistanceFromDepot();
+
+    var itemsByPopularity = items.slice();
+    itemsByPopularity.sort(function(itemA, itemB)
+    {
+        return itemA.popularity * itemA.weight - itemB.popularity * itemB.weight;
+    });
+
+    for(var i = 0; i < items.length; i++)
+    {
+        for(var j = 0; j < itemsByPopularity.length; j++)
+        {
+            if(items[i] == itemsByPopularity[j])
+            {
+                itemsPopularityBasedLocation[i] = { x : itemsByDistances[j].x, y : itemsByDistances[j].y }
+            }
+        }
+    }
+}
+
+var getItemLocationsByDistanceFromDepot = function()
+{
+    var itemLocations = items.slice();
+    var distance = {}
+
+    for(var i = 0; i < itemLocations.length; i++)
+    {
+        distance[itemLocations[i].getClass()] = aStar.searchUnrestricted(itemLocations[i], depot).cost;
+    }
+
+    // sort descending
+    itemLocations.sort(function(itemA, itemB)
+    {
+        return distance[itemB.getClass()] - distance[itemA.getClass()];
+    });
+
+    for(var i = 0; i < itemLocations.length; i++)
+    {
+        itemLocations[i] = { x : itemLocations[i].x, y: itemLocations[i].y}
+    }
+
+    return itemLocations;
+}
+
+var placeItemsRandom = function()
+{
+    for(var i = 0; i < items.length; i++)
+    {
+        items[i].move(itemsRandomLocation[i].x, itemsRandomLocation[i].y);
+    }    
+}
+
+var placeItemsByPopularity = function()
+{
+    /*
+    var itemsByDistances = getItemLocationsByDistanceFromDepot();
+
+    var itemsByPopularity = items.slice();
+    itemsByPopularity.sort(function(itemA, itemB)
+    {
+        return itemA.popularity * itemA.weight - itemB.popularity * itemB.weight;
+    });
+
+    for(var i = 0; i < itemsByPopularity.length; i++)
+    {
+        itemsByPopularity[i].move(itemsByDistances[i].x, itemsByDistances[i].y);
+    }
+    */
+    for(var i = 0; i < items.length; i++)
+    {
+        items[i].move(itemsPopularityBasedLocation[i].x, itemsPopularityBasedLocation[i].y);
+    }
+}
+
+var popularityTable;
+var popularitySum;
+var applyPopularityToItems = function()
+{
+    popularityTable = []
+
+    var popularitySum = 0;
+    for(var i = 0; i < ItemTypes.length; i++)
+    {
+        var popularity = randInt(1, 100);
+        ItemTypes[i].prototype.popularity = popularity;
+        popularitySum += popularity;
+    } 
+
+    var currentIndex = 0;
+    for(var i = 0; i < ItemTypes.length; i++)
+    {
+        for(var j = 0; j < ItemTypes[i].prototype.popularity; j++)
+        {
+            popularityTable[currentIndex + j] = ItemTypes[i];
+        }
+
+        currentIndex += ItemTypes[i].prototype.popularity;
+        
+        ItemTypes[i].prototype.popularity /= popularitySum;
+        ItemTypes[i].prototype.popularity *= 100;
+        ItemTypes[i].prototype.popularity = ItemTypes[i].prototype.popularity.toFixed(2);
+    }
 }

@@ -67,11 +67,20 @@
             <button class="title-bar-btn" onclick="collapseSection(this, '#misc-content')">+</button>
             <div class="clearfix"></div>
         </div>
-        <div id="misc-content" class="sidebar-section">
+        <div id="misc-content" class="sidebar-section" style="display: block">
             Steps: <span id="steps">0</span> <button id="btnResetSteps" class="btn btn-default">Reset</button><br><br>
+            Orders: <span id="orderCount">0</span><br><br>
             <button id="btnDisplayAllMarks" class="btn btn-default">Display All Marks</button>
             <button id="btnClearAllMarks" class="btn btn-default">Clear Marks</button><br><br>
+            Items placement:
+            <select  class="form-control" id="selItemsPlacement" style="width: 200px; display: inline-block;">
+                <option>Random</option>
+                <option>Popularity based</option>
+            </select><br><br>
             <input type="checkbox" id="autoOrder">Automatically add orders<br><br>
+            Max orders: <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxOrders" value="500" />
+            <button class="btn btn-default" id="btnSetMaxOrders">Set</button>
+            <br><br>
         </div>
     </div>
     <div id="robots">
@@ -83,9 +92,10 @@
         <div id="robots-content" class="sidebar-section">
             <select  class="form-control" id="selRobots"></select>
             <img id="robotImg" /><br>
-            Steps: <span id="robotSteps"></span><br>
-            Away to collect: <div id="robotAwayToCollect"></div><br>
+            Steps: <span id="robotSteps"></span><br><br>
+            Will collect: <div id="robotAwayToCollect"></div><br>
             Collected: <div id="robotCollected"></div><br>
+            Will return: <div id="robotAwayToReturn"></div><br>
             Coordinates: <span id="robotCoordinates"></span><br>
             <button id="btnDisplayMarks" class="btn btn-default">Display Marks</button>
             <button id="btnClearMarks" class="btn btn-default">Clear Marks</button><br><br>
@@ -101,7 +111,7 @@
             <select  class="form-control" id="selItems"></select>
             <img id="itemImg" /><br>
             Weight: <span id="itemWeight"></span> oz.<br>
-            Cost: £<span id="itemCost"></span><br>
+            Popularity: <span id="itemPopularity"></span><br>
             Coordinates: <span id="itemCoordinates"></span><br><br>
             <button id="btnItemAddToBasket" class="btn btn-default">Add to basket</button><br><br>
         </div>
@@ -154,6 +164,8 @@
            <tbody id="orders-info-table">
            </tbody>
         </table>
+        <button id="btnCancelOrder" class="btn btn-default" style="display: none;">Cancel order</button>
+        <span id="lblCancelOrder" style="display: none;">Cancelled</span>
     </div>
     <div class="clearfix"></div>
 </div> 
@@ -163,6 +175,7 @@
 <script src="external/js/jquery.min.js"></script>
 <script src="external/js/jquery-ui.min.js"></script>
 <script src="external/js/seedrandom.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/lib/xor4096.min.js"></script>
 
 <script>
 

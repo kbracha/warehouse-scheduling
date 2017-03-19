@@ -26,8 +26,11 @@ var Robot = function()
 
     this.backpack = [];
     this.depot = {x : -1, y : -1};
+    this.depotStand = {x : -1, y : -1};
 
     this.itemDelivered = null;
+    this.itemReturned = null;
+    this.itemCollected = null;
 
     this.steps = 0;
 }
@@ -80,6 +83,12 @@ Robot.prototype.makeAction = function()
     {
         this.handleDeliverItemJob(job);
     }
+    else if(job instanceof ReturnItemJob)
+    {
+        this.handleReturnItemJob(job);
+    }
+
+    return true;
 }
 
 Robot.prototype.handleGoToDestinationJob = function(job)
@@ -165,7 +174,20 @@ Robot.prototype.handleFaceObjectJob = function(job)
 Robot.prototype.handleCollectItemJob = function(job)
 {
     this.backpack.push(job.item);
+
+    this.raiseEvent(this.itemCollected, job.item);
+
     this.completeJob();
+}
+
+Robot.prototype.handleReturnItemJob = function(job)
+{
+    var index = this.backpack.indexOf(job.item);
+    this.backpack.splice(index, 1);
+
+    this.raiseEvent(this.itemReturned, job.item);
+
+    this.completeJob();    
 }
 
 Robot.prototype.handleDeliverItemJob = function(job)
@@ -220,13 +242,23 @@ Robot.prototype.generateRouteMarks = function()
 
 Robot.prototype.returnItemsToCollect = function()
 {
+    return this.returnItems(CollectItemJob);
+}
+
+Robot.prototype.returnItemsToReturn = function()
+{
+    return this.returnItems(ReturnItemJob);
+}
+
+Robot.prototype.returnItems = function(jobType)
+{
     var items = []
 
     for(var i = 0; i < this.jobQueue.length; i++)
     {
         var job = this.jobQueue[i];
 
-        if(job instanceof CollectItemJob)
+        if(job instanceof jobType)
         {
             items.push(job.item);
         }
@@ -274,14 +306,19 @@ Robot.prototype.dropItem = function(item, x ,y)
     graphicsManager.add(item);
 }
 
+Robot.prototype.clearJobs = function()
+{
+    this.jobQueue = [];
+    this.jobData = {};    
+}
+
 Robot.prototype.reset = function()
 {
     this.isMoving = false;
     this.currentMoveIteration = 1;
     this.steps = 0;
 
-    this.jobQueue = [];
-    this.jobData = {};
+    this.clearJobs();
     this.backpack = [];   
     graphicsManager.placeAt(this, this.depot.x + 1, this.depot.y, 0, 0);
 

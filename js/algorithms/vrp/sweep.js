@@ -47,7 +47,6 @@ sweep.calculate = function(depot, items, robotCapacity, tspAlgorithm)
  
     for(var i = 0; i < assignments.length; i++)
     {
-        console.log(assignments[i].items);
         assignments[i].items = tspAlgorithm(depot, assignments[i].items);
     }
 

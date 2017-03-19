@@ -63,7 +63,7 @@ var chessboardDistance = function(p1, p2)
 
 var randInt = function(min, max)
 {
-    return Math.floor((Math.random() * (max - min + 1)) + min)
+    return Math.floor((xorgen.double() * (max - min + 1)) + min)
 }
 
 // check whether it is possible to ever stand at (x, y)
