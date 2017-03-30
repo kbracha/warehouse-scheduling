@@ -1,5 +1,5 @@
 
-var Robot = function()
+var Robot = function(name)
 {
     MobileObject.apply(this);
 
@@ -21,8 +21,11 @@ var Robot = function()
     this.width = 1;
     this.height = 1;
 
-    this.name = Robot.Names[Robot.count];
-    Robot.count += 1;
+    if(name == undefined)
+    {
+        this.name = Robot.Names[Robot.count];
+        Robot.count += 1;
+    }
 
     this.backpack = [];
     this.depot = {x : -1, y : -1};
@@ -31,6 +34,8 @@ var Robot = function()
     this.itemDelivered = null;
     this.itemReturned = null;
     this.itemCollected = null;
+    this.itemPassed = null;
+    this.itemReceived = null;
 
     this.steps = 0; 
 }
@@ -86,6 +91,14 @@ Robot.prototype.makeAction = function()
     else if(job instanceof ReturnItemJob)
     {
         this.handleReturnItemJob(job);
+    }
+    else if(job instanceof PassItemJob)
+    {
+        this.handlePassItemJob(job);
+    }
+    else if(job instanceof ReceiveItemJob)
+    {
+        this.handleReceiveItemJob(job);
     }
 
     return true;
@@ -175,9 +188,9 @@ Robot.prototype.handleCollectItemJob = function(job)
 {
     this.backpack.push(job.item);
 
-    this.raiseEvent(this.itemCollected, job.item);
-
     this.completeJob();
+
+    this.raiseEvent(this.itemCollected, job.item);
 }
 
 Robot.prototype.handleReturnItemJob = function(job)
@@ -185,18 +198,68 @@ Robot.prototype.handleReturnItemJob = function(job)
     var index = this.backpack.indexOf(job.item);
     this.backpack.splice(index, 1);
 
-    this.raiseEvent(this.itemReturned, job.item);
+    this.completeJob(); 
 
-    this.completeJob();    
+    this.raiseEvent(this.itemReturned, job.item);   
 }
 
 Robot.prototype.handleDeliverItemJob = function(job)
 {
     this.dropItem(job.item, this.depot.x, this.depot.y);
 
-    this.raiseEvent(this.itemDelivered, job.item);
-
     this.completeJob();
+
+    this.raiseEvent(this.itemDelivered, job.item);
+}
+
+Robot.prototype.handlePassItemJob = function(job)
+{
+    var item = job.item;
+    var objects = graphicsManager.getObjectsAt(item.transferData.receivingRobotLocation.x, item.transferData.receivingRobotLocation.y);
+
+    for(var i = 0; i < objects.length; i++)
+    {
+        if(objects[i] == item.transferData.receivingRobot)
+        {
+            item.picker = null;
+            this.dropItem(item, item.transferData.dropoff.x, item.transferData.dropoff.y);
+        
+            this.completeJob();
+            
+            this.raiseEvent(this.itemPassed, item);
+        }
+    }
+}
+
+Robot.prototype.handleReceiveItemJob = function(job)
+{
+    var item = job.item.transferData.replaceWith;
+
+    var items = graphicsManager.getObjectsAt(item.transferData.dropoff.x, item.transferData.dropoff.y);
+    for(var i = 0; i < items.length; i++)
+    {
+        if(items[i] == item)
+        {
+            if(this.jobData.waitedTurns == undefined)
+            {
+                this.jobData.waitedTurns = 0;
+            }
+            else if(this.jobData.waitedTurns == 1)
+            {
+                item.picker = this;
+
+                graphicsManager.remove(item);
+                this.backpack.push(job.item);
+
+                this.raiseEvent(this.itemReceived, job.item);                
+
+                this.completeJob()
+            }
+
+            this.jobData.waitedTurns++;
+            break;
+        }
+    }
 }
 
 Robot.prototype.completeJob = function()
@@ -248,6 +311,21 @@ Robot.prototype.returnItemsToCollect = function()
 Robot.prototype.returnItemsToReturn = function()
 {
     return this.returnItems(ReturnItemJob);
+}
+
+Robot.prototype.returnItemsToDeliver = function()
+{
+    return this.returnItems(DeliverItemJob);
+}
+
+Robot.prototype.returnItemsToPass = function()
+{
+    return this.returnItems(PassItemJob);
+}
+
+Robot.prototype.returnItemsToReceive = function()
+{
+    return this.returnItems(ReceiveItemJob);
 }
 
 Robot.prototype.returnItems = function(jobType)
@@ -304,6 +382,26 @@ Robot.prototype.dropItem = function(item, x ,y)
     item.y = y;
 
     graphicsManager.add(item);
+}
+
+Robot.prototype.pickItem = function(item)
+{
+    this.backpack.push(item);
+
+    graphicsManager.remove(item);
+}
+
+Robot.prototype.hasRendezVous = function()
+{
+    for(var i = 0; i < this.jobQueue.length; i++)
+    {
+        if(this.jobQueue[i] instanceof PassItemJob || this.jobQueue[i] instanceof ReceiveItemJob)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 Robot.prototype.clearJobs = function()

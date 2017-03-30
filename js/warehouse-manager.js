@@ -6,6 +6,7 @@ var WarehouseManager = function(depot, robots)
     this.vrpFunction = null;
     this.tspFunction = null;
     this.useTwoOpt = false;
+    this.alwaysCooperate = true;
 
     var self = this;
     for(var i = 0; i < robots.length; i++)
@@ -22,6 +23,16 @@ var WarehouseManager = function(depot, robots)
         }
 
         robots[i].itemCollected = function(item)
+        {
+            self.raiseEvent(self.ordersUpdated);
+        }
+
+        robots[i].itemPassed = function(item)
+        {
+            self.raiseEvent(self.ordersUpdated);
+        }
+
+        robots[i].itemReceived = function(item)
         {
             self.raiseEvent(self.ordersUpdated);
         }
@@ -62,6 +73,8 @@ WarehouseManager.prototype.makeAction = function()
     }
 
     this.handleCancelledOrders();
+
+    this.checkCooperation();
 }
 
 WarehouseManager.prototype.handleAwaitingOrders = function()
@@ -93,13 +106,13 @@ WarehouseManager.prototype.handleAwaitingOrders = function()
             }
         }
         
-
         this.awaitingAssignments = this.awaitingAssignments.concat(assignments);
 
         var cost = 0;
         var assignmentPairs = this.pairAwaitingAssignmentsWithRobots();
         for(var i = 0; i < assignmentPairs.length; i++)
         {
+            console.log(assignmentPairs[i])
             cost += this.calculateAssignmentCost(assignmentPairs[i].robot, assignmentPairs[i].assignment);
         }
 
@@ -135,7 +148,7 @@ WarehouseManager.prototype.calculateAssignmentCost = function(robot, assignment)
         cost += result.cost;
     }
 
-    cost += aStar.searchUnrestricted(result.tail, robot).cost;
+    cost += aStar.searchUnrestricted(result.tail, robot.depotStand).cost;
     return cost;
 }
 
@@ -168,6 +181,7 @@ WarehouseManager.prototype.cancelOrder = function(order)
         if(this.awaitingOrders[i] == order)
         {
             this.awaitingOrders.splice(i, 1);
+            this.completedOrders.push(order);
             this.raiseEvent(this.ordersUpdated);
             return;
         }
@@ -336,28 +350,39 @@ WarehouseManager.prototype.assignItemJobsToRobot = function(robot, items)
     // run tsp over items assigned to him since his starting position is different 
     if(items.length > 1 && chessboardDistance(robot, robot.depotStand) != 0)
     {
-        items = this.tspFunction(robot, items);
-
-        if(this.useTwoOpt == true)
-        {
-            items = twoOpt.deploy(items, robot);
-        }           
+        items = this.runTsp(robot, items);         
     }
 
     for(var i = 0; i < items.length; i++)
     {
-        items[i].picker = robot;
-
-        robot.addJob(new GoNextToDestinationJob(items[i]))
-        robot.addJob(new FaceObjectJob(items[i]));
-
-        if(items[i].order.cancelled == false)
+        if(items[i].transferData != null)
         {
-            robot.addJob(new CollectItemJob(items[i]));
+            if(items[i].order.cancelled == true)
+            {
+                robot.addJob(new GoToDestinationJob(items[i].transferData.passingRobotLocation));
+                robot.addJob(new PassItemJob(items[i]));
+            }
+            else
+            {
+                robot.addJob(new GoToDestinationJob(items[i].transferData.receivingRobotLocation));
+                robot.addJob(new ReceiveItemJob(items[i])); 
+            }
         }
-        else 
+        else
         {
-            robot.addJob(new ReturnItemJob(items[i]));
+            items[i].picker = robot;
+
+            robot.addJob(new GoNextToDestinationJob(items[i]))
+            robot.addJob(new FaceObjectJob(items[i]));
+
+            if(items[i].order.cancelled == false)
+            {
+                robot.addJob(new CollectItemJob(items[i]));
+            }
+            else 
+            {
+                robot.addJob(new ReturnItemJob(items[i]));
+            }
         }
     }   
 
@@ -370,7 +395,19 @@ WarehouseManager.prototype.assignItemJobsToRobot = function(robot, items)
         {
             robot.addJob(new DeliverItemJob(items[i]));
         }
+    }
+}
+
+WarehouseManager.prototype.runTsp = function(robot, items)
+{
+    items = this.tspFunction(robot, items);
+
+    if(this.useTwoOpt == true)
+    {
+        items = twoOpt.deploy(items, robot);
     }  
+
+    return items;
 }
 
 WarehouseManager.prototype.rescheduleRobot = function(robot)
@@ -386,18 +423,19 @@ WarehouseManager.prototype.rescheduleRobot = function(robot)
     }
 
     var itemsCollected = robot.returnItemsCollected().slice();
-    var itemsToReturn = [];
+    var itemsToReturnOrPass = [];
     for(var i = 0; i < itemsCollected.length; i++)
     {
         if(itemsCollected[i].order.cancelled == true)
         {
-            itemsToReturn.push(itemsCollected[i]);
+            itemsToReturnOrPass.push(itemsCollected[i]);
             itemsCollected.splice(i, 1);
             i--;
         }
     }
 
-    var items = itemsToCollect.concat(itemsToReturn);
+    var itemsToReceive = robot.returnItemsToReceive();
+    var items = itemsToCollect.concat(itemsToReturnOrPass).concat(itemsToReceive);
 
     robot.clearJobs();
 
@@ -414,8 +452,6 @@ WarehouseManager.prototype.rescheduleRobot = function(robot)
         // if yes, free robot
         robot.clearJobs();
     }
-
-    console.log(robot.jobQueue);   
 }
 
 WarehouseManager.prototype.acknowledgeOrder = function(order)
@@ -451,6 +487,345 @@ WarehouseManager.prototype.receiveItem = function(item)
     }
 
     this.raiseEvent(this.ordersUpdated);
+}
+
+WarehouseManager.prototype.checkCooperation = function()
+{
+    var canPassRobots = [], canReceiveRobots = [];
+    for(var i = 0; i < this.robots.length; i++)
+    {
+        if(this.canPassItems(this.robots[i]) == true)
+        {
+            canPassRobots.push(this.robots[i]);
+        }
+
+        if(this.canReceiveItems(this.robots[i]) == true)
+        {
+            canReceiveRobots.push(this.robots[i]);
+        }
+    }
+
+    var matches;
+    do
+    {
+        matches = [];
+
+        for(var i = 0; i < canPassRobots.length; i++)
+        {
+            var passingRobot = canPassRobots[i];
+
+            for(var j = 0; j < canReceiveRobots.length; j++)
+            {
+                var receivingRobot = canReceiveRobots[j];
+
+                if(receivingRobot == passingRobot)
+                {
+                    continue;
+                }
+
+                var itemsToReturn = passingRobot.returnItemsToReturn().slice();
+                var itemsToReceive = receivingRobot.returnItemsToCollect().slice();
+
+                // look for pairs that can pass items from one to another
+                var matchedItemsToReturn = [];
+                var matchedItemsToReceive = [];
+                for(var k = 0; k < itemsToReturn.length; k++)
+                {
+                    for(var m = 0; m < itemsToReceive.length; m++)
+                    {
+                        if(itemsToReturn[k].getClass() == itemsToReceive[m].getClass())
+                        {
+                            matchedItemsToReturn.push(itemsToReturn[k]);
+                            itemsToReturn.splice(k, 1);
+
+                            matchedItemsToReceive.push(itemsToReceive[m]);
+                            itemsToReceive.splice(m, 1);
+                        
+                            k--;
+                            break;
+                        }
+                    }
+                }
+
+                if(matchedItemsToReturn.length > 0)
+                {
+                    console.log(passingRobot);
+                    console.log(receivingRobot);
+                    console.log(matchedItemsToReturn);
+                    console.log(matchedItemsToReceive);
+
+                    var passingRobotOriginalJobs = passingRobot.jobQueue.slice();
+                    var receivingRobotOriginalJobs = receivingRobot.jobQueue.slice();
+
+                    var defectCost = this.calculateJobsCost(passingRobot.jobQueue, passingRobot);
+                    defectCost += this.calculateJobsCost(receivingRobot.jobQueue, receivingRobot);
+                    console.log("defect cost " + defectCost);
+
+                    var passingRobotJobs = passingRobot.jobQueue.slice();
+                    var receivingRobotJobs = receivingRobot.jobQueue.slice();
+
+                    this.removeItemJobs(passingRobotJobs, matchedItemsToReturn);
+                    this.removeItemJobs(receivingRobotJobs, matchedItemsToReceive);
+
+                    var rendezVousPositions = this.findRendezVousPositions(passingRobot, receivingRobot);
+                    
+                    // if the robot was about to collect/return an object make it face the object again
+                    if(passingRobotJobs[0] instanceof CollectItemJob || passingRobotJobs[0] instanceof ReturnItemJob)
+                    {
+                        passingRobotJobs.unshift(new FaceObjectJob(passingRobotJobs[0].item));
+                    }
+                    // if the robot was about to face an object make it come back to that object again
+                    if(passingRobotJobs[0] instanceof FaceObjectJob)
+                    {
+                        passingRobotJobs.unshift(new GoNextToDestinationJob(passingRobotJobs[0].object));
+                    }
+                   
+                    for(var k = 0; k < matchedItemsToReturn.length; k++)
+                    {
+                        matchedItemsToReturn[k].transferData = 
+                        {
+                            passingRobot : passingRobot,
+                            receivingRobot : receivingRobot,
+                            dropoff : rendezVousPositions["dropoff"],
+                            passingRobotLocation : rendezVousPositions[passingRobot.name],
+                            receivingRobotLocation : rendezVousPositions[receivingRobot.name],
+                            replacing : matchedItemsToReceive[k]
+                        }
+
+                        passingRobotJobs.unshift(new PassItemJob(matchedItemsToReturn[k]));
+                    }
+
+                    passingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
+                    passingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[passingRobot.name]));
+
+                    // if the robot was about to collect/return an object make it face the object again
+                    if(receivingRobotJobs[0] instanceof CollectItemJob || receivingRobotJobs[0] instanceof ReturnItemJob)
+                    {
+                        receivingRobotJobs.unshift(new FaceObjectJob(receivingRobotJobs[0].item));
+                    }
+                    // if the robot was about to face an object make it come back to that object again
+                    if(receivingRobotJobs[0] instanceof FaceObjectJob)
+                    {
+                        receivingRobotJobs.unshift(new GoNextToDestinationJob(receivingRobotJobs[0].object));
+                    }
+
+                    for(var k = 0; k < matchedItemsToReceive.length; k++)
+                    {
+                        matchedItemsToReceive[k].transferData = 
+                        {
+                            passingRobot : passingRobot,
+                            receivingRobot : receivingRobot,
+                            dropoff : rendezVousPositions["dropoff"],
+                            passingRobotLocation : rendezVousPositions[passingRobot.name],
+                            receivingRobotLocation : rendezVousPositions[receivingRobot.name],
+                            replaceWith : matchedItemsToReturn[k]
+                        }
+
+                        receivingRobotJobs.unshift(new ReceiveItemJob(matchedItemsToReceive[k]));                      
+                    }
+
+                    receivingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
+                    receivingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[receivingRobot.name]));
+
+                    console.log(receivingRobotJobs)
+
+                    var coopCost = this.calculateJobsCost(passingRobotJobs, passingRobot);
+                    coopCost += this.calculateJobsCost(receivingRobotJobs, receivingRobot);
+
+                    console.log("coop cost " + coopCost);
+
+                    var cooperationData = 
+                    {
+                        matchedItemsToReturn : matchedItemsToReturn,
+                        matchedItemsToReturnTransferData : 
+                    };
+                    
+                    //if(coopCost < defectCost)
+                    {
+                        //for(var k = 0; k < matchedItemsToReceive.length; k++)
+                        //{
+                        //    matchedItemsToReceive[k].picker = null;
+                        //}
+
+                        passingRobot.clearJobs();
+                        passingRobot.jobQueue = passingRobotJobs;
+                        receivingRobot.clearJobs();
+                        receivingRobot.jobQueue = receivingRobotJobs;
+                        canReceiveRobots.splice(j, 1);
+
+                        this.raiseEvent(this.ordersUpdated);
+
+                        break;
+                    }
+
+   
+                    /*
+                    var passingRobotSpots = this.getSpotsFromJobs(passingRobotJobs);
+                    var receivingRobotSpots = this.getSpotsFromJobs(receivingRobotJobs);
+                    passingRobotSpots[passingRobotSpots.length - 1] = rendezVousPositions[passingRobot];
+                    receivingRobotSpots[receivingRobotSpots.length - 1] = rendezVousPositions[receivingRobot];
+
+                    // <should be hamiltonian path not tsp> 
+                    passingRobotSpots = this.runTsp(passingRobot, passingRobotSpots);
+                    receivingRobotSpots = this.runTsp(receivingRobot, receivingRobotSpots);
+                    */
+                    
+                }
+            }
+        }        
+    }
+    while(matches.length > 0);
+}
+
+WarehouseManager.prototype.getSpotsFromJobs = function(jobs)
+{
+    var spots = [];
+    for(var i = 0; i < jobs.length; i++)
+    {
+        if(jobs[i] instanceof GoNextToDestinationJob || jobs[i] instanceof GoToDestinationJob)
+        {
+            spots.push(jobs[i].destination);
+        }
+    }
+    return spots;
+}
+
+WarehouseManager.prototype.removeItemJobs = function(jobs, items)
+{
+    for(var i = 0; i < items.length; i++)
+    {
+        for(var j = 0; j < jobs.length; j++)
+        {
+            if(jobs[j].item == items[i])
+            {
+                if(jobs[j] instanceof ReturnItemJob || jobs[j] instanceof CollectItemJob)
+                {
+                    // 3 jobs per item: GoNextToDestinationJob, FaceObjectJob, ReturnItemJob/CollectItemJob
+                    if(j > 1)
+                    {
+                        jobs.splice(j - 2, 3);
+                        j -= 3;
+                    }
+                    else if(j == 1)
+                    {
+                        jobs.splice(j - 1, 2);
+                        j -= 2;
+                    }
+                    else
+                    {
+                        jobs.splice(j, 1);
+                        j -= 1;
+                    }
+                    //else if(jobs[j] instanceof DeliverItemJob)
+                }
+                
+                break;
+            }
+        }
+    }
+}
+
+WarehouseManager.prototype.findRendezVousPositions = function(robotA, robotB)
+{
+    var positions = {}
+
+    if(chessboardDistance(robotA, robotB) == 0)
+    {   
+        positions[robotA.name] = {x : robotA.x, y: robotA.y}
+        positions[robotB.name] = {x : robotB.x, y: robotB.y}
+        return positions;
+    }
+
+    var result = aStar.searchUnrestricted(robotA, robotB);
+    var halfwayPoint = result.cost / 2 - 2;
+    var node = result.node;
+
+    for(var i = 0; i < halfwayPoint; i++)
+    {
+        node = node.child;
+    }
+
+    positions[robotA.name] = {x : node.x, y: node.y} 
+
+    node = node.child;
+    positions["dropoff"] = {x : node.x, y: node.y};
+
+    node = node.child;
+    positions[robotB.name] = {x : node.x, y: node.y};
+    
+    return positions;
+}
+
+WarehouseManager.prototype.calculateJobsCost = function(jobs, robot)
+{
+    var locations = [];
+    var searchfunctions = []
+    for(var i = 0; i < jobs.length; i++)
+    {
+        if(jobs[i] instanceof GoNextToDestinationJob)
+        {
+            locations.push(jobs[i].destination);
+            searchfunctions.push(aStar.searchUnrestrictedNextTo);
+        }
+        else if(jobs[i] instanceof GoToDestinationJob)
+        {
+            locations.push(jobs[i].destination);
+            searchfunctions.push(aStar.searchUnrestricted);
+        }
+    }
+
+    var cost = 0;
+    var result = null;
+
+    if(locations.length != 0)
+    {
+        result = searchfunctions[0](robot, locations[0]);
+        cost += result.cost;
+    }
+
+    for(var j = 1; j < locations.length; j++)
+    {
+        result = searchfunctions[j](result.tail, locations[j]);
+        cost += result.cost;
+    }
+
+    if(robot.returnItemsToDeliver().length != 0)
+    {
+        if(result != null)
+        {
+            cost += aStar.searchUnrestricted(result.tail, robot.depotStand).cost;
+        }
+        else
+        {
+            cost += aStar.searchUnrestricted(robot, robot.depotStand).cost;
+        }
+    }
+    
+    return cost;    
+}
+
+WarehouseManager.prototype.canPassItems = function(robot)
+{
+    if(robot.hasRendezVous() == false && robot.returnItemsToReturn().length != 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+WarehouseManager.prototype.canReceiveItems = function(robot)
+{
+    if(robot.hasRendezVous() == false && robot.returnItemsToCollect().length != 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 WarehouseManager.prototype.raiseEvent = function(event)

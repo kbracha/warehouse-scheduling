@@ -8,7 +8,7 @@ var running = false;
 var autoOrder = false;
 
 var shelfVertices = []
-var robotsCount = 1;
+var robotsCount = 10;
 var selectedRobot = null;
 
 var orders = []
@@ -28,8 +28,11 @@ var baseScaleY;
 var depot;
 
 var maxOrders = Number.MAX_VALUE;
+var steps = 0;
+var maxSteps = Number.MAX_VALUE;
 
 var xorgen;
+
 
 $(document).ready(function()
 {
@@ -81,7 +84,7 @@ $(document).ready(function()
         robots.push(robot); 
     }
 
-    depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2 }
+    depot = { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2, depotStand : { x : Math.floor(getWarehouseSchemeWidth() / 2), y : 2}}
 
     manager = new WarehouseManager(depot, robots);
     manager.ordersUpdated = updateOrdersInfo;
@@ -156,7 +159,7 @@ var oneRound = false;
 var idleRobots = true;
 var simulate = function() 
 {
-    if(running || oneRound)
+    if((running || oneRound) && steps <= maxSteps)
     {
         if(oneRound == true)
         {
@@ -196,7 +199,7 @@ var simulate = function()
             }
 
             idleRobots = false;
-            var steps = 0;
+            steps = 0;
             for(var i = 0; i < robots.length; i ++)
             {
                 var wasIdle = !robots[i].isBusy();
@@ -529,7 +532,7 @@ var bindControls = function()
     {
         basketOrder.finalize(getItemSource);
         manager.acknowledgeOrder(basketOrder);
-        orders.add(basketOrder);
+        orders.push(basketOrder);
         basketOrder = new Order();
         updateBasket();
     });
@@ -660,6 +663,11 @@ var bindControls = function()
         maxOrders = $("#maxOrders").val();
     })
 
+    $("#btnSetMaxSteps").click(function()
+    {
+        maxSteps = $("#maxSteps").val();
+    });
+
     $("#btnCancelOrder").click(cancelOrder);
 }
 
@@ -760,9 +768,10 @@ var changeRobotSelection = function(robotName)
 
 var updateOrdersInfo = function()
 {
-    $("#awaitingOrders").empty();
     var selectedId = $(".orders-entry-selected").data("order-id");
     selectedOrder = null;
+
+    $("#awaitingOrders").empty();
 
     var awaitingOrders = manager.awaitingOrders;
     for(var i = 0; i < awaitingOrders.length; i++)
@@ -876,67 +885,143 @@ var updateOrdersInfo = function()
 
     function displayPendingOrder(order)
     {
-         var items = order.getItems();
-         
-         for(var j = 0; j < items.length; j++)
-         {
-             var status;
-             var picker = items[j].picker;
-             var pickerName = null;
-             if(picker != null)
-             {
-                 pickerName = picker.name;
+        var items = order.getItems();
+        
+        for(var j = 0; j < items.length; j++)
+        {
+            var status;
+            var picker = items[j].picker;
+            var pickerName = null;
+            if(items[j].transferData == null)
+            {
+                if(picker != null)
+                {
+                    pickerName = picker.name;
 
-                 if(items[j].delivered == true)
-                 {
-                     status = "delivered";
-                 }
-                 else
-                 {
-                    if(picker.backpack.indexOf(items[j]) != -1)
+                    if(items[j].delivered == true)
                     {
-                        status = "carried";
-                    }
-                    else if(items[j].order.cancelled == false)
-                    {
-                        status = "will be picked";
-                    }
-                    else if(items[j].returned == true)
-                    {
-                        status = "returned";
+                        status = "delivered";
                     }
                     else
                     {
-                        status = "pickup abandoned";
+                       if(picker.backpack.indexOf(items[j]) != -1)
+                       {
+                           status = "carried";
+                       }
+                       else if(items[j].order.cancelled == false)
+                       {
+                           status = "will be picked";
+                       }
+                       else if(items[j].returned == true)
+                       {
+                           status = "returned";
+                       }
+                       else
+                       {
+                           status = "pickup abandoned";
+                       }
+                    }    
+                }
+                else
+                {
+                    status = "unassigned"
+                }
+            }
+            else
+            {
+                if(items[j].transferData.replaceWith != undefined)
+                {
+                    if(items[j].transferData.replaceWith.picker != null)
+                    {
+                        pickerName = items[j].transferData.replaceWith.picker.name;
                     }
-                 }    
-             }
-             else
-             {
-                 status = "unassigned"
-             }
-         
-             addTableEntry(items[j].getClass(), 1, pickerName, status);
-         }
+                    
+                    status = "fill in from order #" + items[j].transferData.replaceWith.order.id + "<br>";
 
-         if(order.cancelled == false)
-         {
-             $("#btnCancelOrder").css("display", "block");
-         }
-         else
-         {
-             $("#lblCancelOrder").css("display", "block");
-         }                  
+                    if(pickerName != items[j].transferData.receivingRobot.name)
+                    {
+                        status += items[j].transferData.passingRobot.name + " will pass to " + items[j].transferData.receivingRobot.name;
+                    }
+                    else if(pickerName != null)
+                    {
+                        status += items[j].transferData.passingRobot.name + " passed to " + items[j].transferData.receivingRobot.name;
+                    }
+                    else
+                    {
+                        status += items[j].transferData.receivingRobot.name + " picking up from " + items[j].transferData.passingRobot.name;          
+                    }
+                }
+                else
+                {
+                    if(items[j].picker != null)
+                    {
+                        pickerName = items[j].picker.name;
+                    }
+
+                    status = "transfer to order #" + items[j].transferData.replacing.order.id + "<br>";
+                    if(pickerName != items[j].transferData.receivingRobot.name)
+                    {
+                        status += items[j].transferData.receivingRobot.name + " will receive from " + items[j].transferData.passingRobot.name;
+                    }
+                    else if(pickerName != null)
+                    {
+                        status += items[j].transferData.receivingRobot.name + " received from " + items[j].transferData.passingRobot.name;
+                    }
+                    else
+                    {
+                        status += items[j].transferData.receivingRobot.name + " picking up from " + items[j].transferData.passingRobot.name;
+                    }
+                }
+            }
+        
+            addTableEntry(items[j].getClass(), 1, pickerName, status);
+        }
+           
+        if(order.cancelled == false)
+        {
+            var containsTransfers = false;
+            for(var i = 0; i < order.items.length; i++)
+            {
+                if(order.items[i].transferData != null)
+                {
+                    containsTransfers = true;
+                }
+            }
+
+            if(containsTransfers == false)
+            {
+                $("#btnCancelOrder").css("display", "block");
+            }
+            else
+            {
+                $("#lblCancelOrder").text("Cannot cancel - order contains transfers");
+                $("#lblCancelOrder").css("display", "block");
+            }
+        }
+        else
+        {
+            $("#lblCancelOrder").text("Cancelled");
+            $("#lblCancelOrder").css("display", "block");
+        }                  
     }
 
     function displayCompletedOrder(order)
     {
         var items = order.getItems();
 
+
         if(order.cancelled == false)
         {
             for(var j = 0; j < items.length; j++)
             {
+                if(items[j].transferData == null)
+                {
+                    
+                }
+                else
+                {
+
+                }
                 addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
             }
         }   
@@ -1007,8 +1092,12 @@ var selectRobot = function(robot)
 
     $("#robotAwayToCollect").empty();
     $("#robotAwayToCollect").append(makeItemsString(robot.returnItemsToCollect()));
+    $("#robotAwayToReceive").empty();
+    $("#robotAwayToReceive").append(makeItemsString(robot.returnItemsToReceive()));
     $("#robotCollected").empty();
     $("#robotCollected").append(makeItemsString(robot.returnItemsCollected()));
+    $("#robotAwayToPass").empty();
+    $("#robotAwayToPass").append(makeItemsString(robot.returnItemsToPass()));
     $("#robotAwayToReturn").empty();
     $("#robotAwayToReturn").append(makeItemsString(robot.returnItemsToReturn()));
 

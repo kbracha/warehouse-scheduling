@@ -12,6 +12,8 @@ var Item = function()
     this.picker = null;
     this.delivered = false;
     this.returned = false;
+
+    this.transferData = null;
 }
 extend(Item, StaticObject);
 Item.prototype.weight = 5;

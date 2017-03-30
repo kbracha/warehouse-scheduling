@@ -65,6 +65,9 @@
 
 #orders-list
 {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
     width: 250px;
     text-align: center;
     float: left;
@@ -73,8 +76,13 @@
 
 #orders-info
 {
-    padding-left: 20px;
+    position: absolute;
+    left: 290px;
+    top: 20px;
+    bottom: 30px;
     float: left;
+    overflow: auto;
+    right: 10px;
 }
 
 .orders-entry

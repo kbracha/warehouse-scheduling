@@ -73,14 +73,24 @@
             <button id="btnDisplayAllMarks" class="btn btn-default">Display All Marks</button>
             <button id="btnClearAllMarks" class="btn btn-default">Clear Marks</button><br><br>
             Items placement:
-            <select  class="form-control" id="selItemsPlacement" style="width: 200px; display: inline-block;">
+            <select  class="form-control" id="selItemsPlacement" style="width: 140px; display: inline-block;">
                 <option>Random</option>
                 <option>Popularity based</option>
             </select><br><br>
             <input type="checkbox" id="autoOrder">Automatically add orders<br><br>
-            Max orders: <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxOrders" value="500" />
+            Max orders: <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxOrders" value="20" />
             <button class="btn btn-default" id="btnSetMaxOrders">Set</button>
             <br><br>
+            Stop after: 
+            <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxSteps" value="500" />
+            &nbsp;steps&nbsp;
+            <button class="btn btn-default" id="btnSetMaxSteps">Set</button>
+            <br><br>
+            Cooperate:
+            <select  class="form-control" id="selCooperate" style="width: 160px; display: inline-block;">
+                <option>Always</option>
+                <option>Only when beneficial</option>
+            </select><br><br>
         </div>
     </div>
     <div id="robots">
@@ -93,9 +103,11 @@
             <select  class="form-control" id="selRobots"></select>
             <img id="robotImg" /><br>
             Steps: <span id="robotSteps"></span><br><br>
-            Will collect: <div id="robotAwayToCollect"></div><br>
-            Collected: <div id="robotCollected"></div><br>
-            Will return: <div id="robotAwayToReturn"></div><br>
+            <b>Will collect:</b> <div id="robotAwayToCollect"></div>
+            <b>Will receive:</b> <div id="robotAwayToReceive"></div>
+            <b>Collected:</b> <div id="robotCollected"></div>
+            <b>Will transfer:</b> <div id="robotAwayToPass"></div>
+            <b>Will return:</b> <div id="robotAwayToReturn"></div><br>
             Coordinates: <span id="robotCoordinates"></span><br>
             <button id="btnDisplayMarks" class="btn btn-default">Display Marks</button>
             <button id="btnClearMarks" class="btn btn-default">Clear Marks</button><br><br>
@@ -155,10 +167,10 @@
         <table class="table table-striped">
            <thead>
              <tr>
-               <th>Item</th>
-               <th>Quantity</th>
-               <th>Picker</th>
-               <th>Status</th>
+               <th class='text-center'>Item</th>
+               <th class='text-center'>Quantity</th>
+               <th class='text-center'>Picker</th>
+               <th class='text-center'>Status</th>
              </tr>
            </thead>
            <tbody id="orders-info-table">

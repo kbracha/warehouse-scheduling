@@ -32,6 +32,12 @@ var ReturnItemJob = function(item)
     this.item = item;
 }
 
-var BringItemsJob = function()
+var PassItemJob = function(item)
 {
+    this.item = item;
+}
+
+var ReceiveItemJob = function(item)
+{
+    this.item = item; 
 }
