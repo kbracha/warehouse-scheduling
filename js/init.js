@@ -5,7 +5,7 @@ var manager;
 var robotInit;
 var running = false;
 
-var autoOrder = false;
+var autoOrder = true;
 
 var shelfVertices = []
 var robotsCount = 10;
@@ -27,7 +27,8 @@ var baseScaleY;
 
 var depot;
 
-var maxOrders = Number.MAX_VALUE;
+//var maxOrders = Number.MAX_VALUE;
+var maxOrders = 200;
 var steps = 0;
 var maxSteps = Number.MAX_VALUE;
 
@@ -37,7 +38,9 @@ var xorgen;
 $(document).ready(function()
 {
     //Math.seedrandom('test');
-    xorgen = new xor4096('test.');
+    var seed = prompt("Enter seed value for pseudorandom algorithm", "rgu");
+    console.log(seed);
+    xorgen = new xor4096(seed);
 
     graphicsManager = new GraphicsManager($("#simulation"), getWarehouseSchemeWidth(), getWarehouseSchemeHeight());
     baseScaleY = ($(window).height() - 20) / getWarehouseSchemeHeight();
@@ -154,7 +157,7 @@ var displayRouteMarks = function(robot)
 }
 
 var frames = 0;
-var framesPerAction = 8;
+var framesPerAction = 1;
 var oneRound = false;
 var idleRobots = true;
 var simulate = function() 
@@ -530,6 +533,12 @@ var bindControls = function()
 
     $("#btnSubmitBasket").click(function(e)
     {
+        if(basketOrder.getCount() == 0)
+        {
+            alert("You need to add at least 1 item to the basket");
+            return;
+        }
+
         basketOrder.finalize(getItemSource);
         manager.acknowledgeOrder(basketOrder);
         orders.push(basketOrder);
@@ -637,9 +646,21 @@ var bindControls = function()
         height: 500
     });
 
+    $( "#basket" ).dialog({ 
+        autoOpen: false,
+        title: "Basket",
+        width: 800,
+        height: 500
+    });
+
     $("#btnViewOrders").click(function(e)
     {
         $("#orders").dialog( "open" );
+    });
+
+    $("#btnViewBasket").click(function(e)
+    {
+        $("#basket").dialog( "open" );
     });
 
     $("#selItemsPlacement").change(function(e) 
@@ -931,45 +952,30 @@ var updateOrdersInfo = function()
             {
                 if(items[j].transferData.replaceWith != undefined)
                 {
-                    if(items[j].transferData.replaceWith.picker != null)
-                    {
-                        pickerName = items[j].transferData.replaceWith.picker.name;
-                    }
+                    pickerName = items[j].transferData.replaceWith.picker.name;
                     
                     status = "fill in from order #" + items[j].transferData.replaceWith.order.id + "<br>";
-
                     if(pickerName != items[j].transferData.receivingRobot.name)
                     {
-                        status += items[j].transferData.passingRobot.name + " will pass to " + items[j].transferData.receivingRobot.name;
-                    }
-                    else if(pickerName != null)
-                    {
-                        status += items[j].transferData.passingRobot.name + " passed to " + items[j].transferData.receivingRobot.name;
+                        status += makeRobotLink(items[j].transferData.passingRobot.name) + " will pass to " + makeRobotLink(items[j].transferData.receivingRobot.name);
                     }
                     else
                     {
-                        status += items[j].transferData.receivingRobot.name + " picking up from " + items[j].transferData.passingRobot.name;          
+                        status += makeRobotLink(items[j].transferData.passingRobot.name) + " passed to " + makeRobotLink(items[j].transferData.receivingRobot.name);
                     }
                 }
                 else
                 {
-                    if(items[j].picker != null)
-                    {
-                        pickerName = items[j].picker.name;
-                    }
+                    pickerName = items[j].picker.name;
 
                     status = "transfer to order #" + items[j].transferData.replacing.order.id + "<br>";
                     if(pickerName != items[j].transferData.receivingRobot.name)
                     {
-                        status += items[j].transferData.receivingRobot.name + " will receive from " + items[j].transferData.passingRobot.name;
-                    }
-                    else if(pickerName != null)
-                    {
-                        status += items[j].transferData.receivingRobot.name + " received from " + items[j].transferData.passingRobot.name;
+                        status += makeRobotLink(items[j].transferData.receivingRobot.name) + " will receive from " + makeRobotLink(items[j].transferData.passingRobot.name);
                     }
                     else
                     {
-                        status += items[j].transferData.receivingRobot.name + " picking up from " + items[j].transferData.passingRobot.name;
+                        status += makeRobotLink(items[j].transferData.receivingRobot.name) + " received from " + makeRobotLink(items[j].transferData.passingRobot.name);
                     }
                 }
             }
@@ -1009,48 +1015,63 @@ var updateOrdersInfo = function()
     {
         var items = order.getItems();
 
-
         if(order.cancelled == false)
         {
             for(var j = 0; j < items.length; j++)
             {
                 if(items[j].transferData == null)
                 {
-                    
+                    addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
                 }
                 else
                 {
+                    pickerName = items[j].transferData.replaceWith.picker.name;
 
-                }
-                addTableEntry(items[j].getClass(), 1, items[j].picker.name, "delivered");
+                    status = "filled in from order #" + items[j].transferData.replaceWith.order.id + "<br>";
+                    status += makeRobotLink(items[j].transferData.passingRobot.name) + " passed to " + makeRobotLink(items[j].transferData.receivingRobot.name);                    
+                
+                    addTableEntry(items[j].getClass(), 1, pickerName, status);
+                }        
             }
         }   
         else
         {
             for(var j = 0; j < items.length; j++)
             {
-                var pickerName = null, status = "unassigned";
-                if(items[j].picker != null)
+                if(items[j].transferData == null)
+                {
+                    var pickerName = null, status = "unassigned";
+
+                    if(items[j].picker != null)
+                    {
+                        pickerName = items[j].picker.name;
+
+                        if(items[j].delivered == true)
+                        {
+                            status = "delivered";
+                        }
+                        else if(items[j].returned == true)
+                        {
+                            status = "returned";
+                        }
+                        else
+                        {
+                            status = "pickup abandoned";
+                        }
+                    }
+                }
+                else
                 {
                     pickerName = items[j].picker.name;
 
-                    if(items[j].delivered == true)
-                    {
-                        status = "delivered";
-                    }
-                    else if(items[j].returned == true)
-                    {
-                        status = "returned";
-                    }
-                    else
-                    {
-                        status = "pickup abandoned";
-                    }
+                    status = "transferred to order #" + items[j].transferData.replacing.order.id + "<br>";
+                    status += makeRobotLink(items[j].transferData.receivingRobot.name) + " received from " + makeRobotLink(items[j].transferData.passingRobot.name);                   
                 }
 
                 addTableEntry(items[j].getClass(), 1, pickerName, status);
             }            
 
+            $("#lblCancelOrder").text("Cancelled");
             $("#lblCancelOrder").css("display", "block");
         }          
     }
@@ -1244,20 +1265,6 @@ var placeItemsRandom = function()
 
 var placeItemsByPopularity = function()
 {
-    /*
-    var itemsByDistances = getItemLocationsByDistanceFromDepot();
-
-    var itemsByPopularity = items.slice();
-    itemsByPopularity.sort(function(itemA, itemB)
-    {
-        return itemA.popularity * itemA.weight - itemB.popularity * itemB.weight;
-    });
-
-    for(var i = 0; i < itemsByPopularity.length; i++)
-    {
-        itemsByPopularity[i].move(itemsByDistances[i].x, itemsByDistances[i].y);
-    }
-    */
     for(var i = 0; i < items.length; i++)
     {
         items[i].move(itemsPopularityBasedLocation[i].x, itemsPopularityBasedLocation[i].y);

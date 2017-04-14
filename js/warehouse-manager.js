@@ -505,176 +505,210 @@ WarehouseManager.prototype.checkCooperation = function()
         }
     }
 
-    var matches;
-    do
+    var matches = [];
+
+    for(var i = 0; i < canPassRobots.length; i++)
     {
-        matches = [];
+        var passingRobot = canPassRobots[i];
 
-        for(var i = 0; i < canPassRobots.length; i++)
+        for(var j = 0; j < canReceiveRobots.length; j++)
         {
-            var passingRobot = canPassRobots[i];
+            var receivingRobot = canReceiveRobots[j];
 
-            for(var j = 0; j < canReceiveRobots.length; j++)
+            if(receivingRobot == passingRobot)
             {
-                var receivingRobot = canReceiveRobots[j];
+                continue;
+            }
 
-                if(receivingRobot == passingRobot)
+            var itemsToReturn = passingRobot.returnItemsToReturn().slice();
+            var itemsToReceive = receivingRobot.returnItemsToCollect().slice();
+
+            // look for pairs that can pass items from one to another
+            var matchedItemsToReturn = [];
+            var matchedItemsToReceive = [];
+            for(var k = 0; k < itemsToReturn.length; k++)
+            {
+                for(var m = 0; m < itemsToReceive.length; m++)
                 {
-                    continue;
-                }
-
-                var itemsToReturn = passingRobot.returnItemsToReturn().slice();
-                var itemsToReceive = receivingRobot.returnItemsToCollect().slice();
-
-                // look for pairs that can pass items from one to another
-                var matchedItemsToReturn = [];
-                var matchedItemsToReceive = [];
-                for(var k = 0; k < itemsToReturn.length; k++)
-                {
-                    for(var m = 0; m < itemsToReceive.length; m++)
+                    if(itemsToReturn[k].getClass() == itemsToReceive[m].getClass())
                     {
-                        if(itemsToReturn[k].getClass() == itemsToReceive[m].getClass())
-                        {
-                            matchedItemsToReturn.push(itemsToReturn[k]);
-                            itemsToReturn.splice(k, 1);
+                        matchedItemsToReturn.push(itemsToReturn[k]);
+                        itemsToReturn.splice(k, 1);
 
-                            matchedItemsToReceive.push(itemsToReceive[m]);
-                            itemsToReceive.splice(m, 1);
-                        
-                            k--;
-                            break;
-                        }
-                    }
-                }
-
-                if(matchedItemsToReturn.length > 0)
-                {
-                    console.log(passingRobot);
-                    console.log(receivingRobot);
-                    console.log(matchedItemsToReturn);
-                    console.log(matchedItemsToReceive);
-
-                    var passingRobotOriginalJobs = passingRobot.jobQueue.slice();
-                    var receivingRobotOriginalJobs = receivingRobot.jobQueue.slice();
-
-                    var defectCost = this.calculateJobsCost(passingRobot.jobQueue, passingRobot);
-                    defectCost += this.calculateJobsCost(receivingRobot.jobQueue, receivingRobot);
-                    console.log("defect cost " + defectCost);
-
-                    var passingRobotJobs = passingRobot.jobQueue.slice();
-                    var receivingRobotJobs = receivingRobot.jobQueue.slice();
-
-                    this.removeItemJobs(passingRobotJobs, matchedItemsToReturn);
-                    this.removeItemJobs(receivingRobotJobs, matchedItemsToReceive);
-
-                    var rendezVousPositions = this.findRendezVousPositions(passingRobot, receivingRobot);
+                        matchedItemsToReceive.push(itemsToReceive[m]);
+                        itemsToReceive.splice(m, 1);
                     
-                    // if the robot was about to collect/return an object make it face the object again
-                    if(passingRobotJobs[0] instanceof CollectItemJob || passingRobotJobs[0] instanceof ReturnItemJob)
-                    {
-                        passingRobotJobs.unshift(new FaceObjectJob(passingRobotJobs[0].item));
-                    }
-                    // if the robot was about to face an object make it come back to that object again
-                    if(passingRobotJobs[0] instanceof FaceObjectJob)
-                    {
-                        passingRobotJobs.unshift(new GoNextToDestinationJob(passingRobotJobs[0].object));
-                    }
-                   
-                    for(var k = 0; k < matchedItemsToReturn.length; k++)
-                    {
-                        matchedItemsToReturn[k].transferData = 
-                        {
-                            passingRobot : passingRobot,
-                            receivingRobot : receivingRobot,
-                            dropoff : rendezVousPositions["dropoff"],
-                            passingRobotLocation : rendezVousPositions[passingRobot.name],
-                            receivingRobotLocation : rendezVousPositions[receivingRobot.name],
-                            replacing : matchedItemsToReceive[k]
-                        }
-
-                        passingRobotJobs.unshift(new PassItemJob(matchedItemsToReturn[k]));
-                    }
-
-                    passingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
-                    passingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[passingRobot.name]));
-
-                    // if the robot was about to collect/return an object make it face the object again
-                    if(receivingRobotJobs[0] instanceof CollectItemJob || receivingRobotJobs[0] instanceof ReturnItemJob)
-                    {
-                        receivingRobotJobs.unshift(new FaceObjectJob(receivingRobotJobs[0].item));
-                    }
-                    // if the robot was about to face an object make it come back to that object again
-                    if(receivingRobotJobs[0] instanceof FaceObjectJob)
-                    {
-                        receivingRobotJobs.unshift(new GoNextToDestinationJob(receivingRobotJobs[0].object));
-                    }
-
-                    for(var k = 0; k < matchedItemsToReceive.length; k++)
-                    {
-                        matchedItemsToReceive[k].transferData = 
-                        {
-                            passingRobot : passingRobot,
-                            receivingRobot : receivingRobot,
-                            dropoff : rendezVousPositions["dropoff"],
-                            passingRobotLocation : rendezVousPositions[passingRobot.name],
-                            receivingRobotLocation : rendezVousPositions[receivingRobot.name],
-                            replaceWith : matchedItemsToReturn[k]
-                        }
-
-                        receivingRobotJobs.unshift(new ReceiveItemJob(matchedItemsToReceive[k]));                      
-                    }
-
-                    receivingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
-                    receivingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[receivingRobot.name]));
-
-                    console.log(receivingRobotJobs)
-
-                    var coopCost = this.calculateJobsCost(passingRobotJobs, passingRobot);
-                    coopCost += this.calculateJobsCost(receivingRobotJobs, receivingRobot);
-
-                    console.log("coop cost " + coopCost);
-
-                    var cooperationData = 
-                    {
-                        matchedItemsToReturn : matchedItemsToReturn,
-                        matchedItemsToReturnTransferData : 
-                    };
-                    
-                    //if(coopCost < defectCost)
-                    {
-                        //for(var k = 0; k < matchedItemsToReceive.length; k++)
-                        //{
-                        //    matchedItemsToReceive[k].picker = null;
-                        //}
-
-                        passingRobot.clearJobs();
-                        passingRobot.jobQueue = passingRobotJobs;
-                        receivingRobot.clearJobs();
-                        receivingRobot.jobQueue = receivingRobotJobs;
-                        canReceiveRobots.splice(j, 1);
-
-                        this.raiseEvent(this.ordersUpdated);
-
+                        k--;
                         break;
                     }
-
-   
-                    /*
-                    var passingRobotSpots = this.getSpotsFromJobs(passingRobotJobs);
-                    var receivingRobotSpots = this.getSpotsFromJobs(receivingRobotJobs);
-                    passingRobotSpots[passingRobotSpots.length - 1] = rendezVousPositions[passingRobot];
-                    receivingRobotSpots[receivingRobotSpots.length - 1] = rendezVousPositions[receivingRobot];
-
-                    // <should be hamiltonian path not tsp> 
-                    passingRobotSpots = this.runTsp(passingRobot, passingRobotSpots);
-                    receivingRobotSpots = this.runTsp(receivingRobot, receivingRobotSpots);
-                    */
-                    
                 }
             }
-        }        
+
+            if(matchedItemsToReturn.length > 0)
+            {
+                var matchedItemsToReturnTransferData = [];
+                var matchedItemsToReceiveTransferData = [];
+
+                var passingRobotOriginalJobs = passingRobot.jobQueue.slice();
+                var receivingRobotOriginalJobs = receivingRobot.jobQueue.slice();
+
+                var defectCost = this.calculateJobsCost(passingRobot.jobQueue, passingRobot);
+                defectCost += this.calculateJobsCost(receivingRobot.jobQueue, receivingRobot);
+
+                var passingRobotJobs = passingRobot.jobQueue.slice();
+                var receivingRobotJobs = receivingRobot.jobQueue.slice();
+
+                this.removeItemJobs(passingRobotJobs, matchedItemsToReturn);
+                this.removeItemJobs(receivingRobotJobs, matchedItemsToReceive);
+
+                var rendezVousPositions = this.findRendezVousPositions(passingRobot, receivingRobot);
+                
+                // if the robot was about to collect/return an object make it face the object again
+                if(passingRobotJobs[0] instanceof CollectItemJob || passingRobotJobs[0] instanceof ReturnItemJob)
+                {
+                    passingRobotJobs.unshift(new FaceObjectJob(passingRobotJobs[0].item));
+                }
+                // if the robot was about to face an object make it come back to that object again
+                if(passingRobotJobs[0] instanceof FaceObjectJob)
+                {
+                    passingRobotJobs.unshift(new GoNextToDestinationJob(passingRobotJobs[0].object));
+                }
+               
+                for(var k = 0; k < matchedItemsToReturn.length; k++)
+                {
+                    //matchedItemsToReturn[k].transferData = 
+                    matchedItemsToReturnTransferData.push(
+                    {
+                        passingRobot : passingRobot,
+                        receivingRobot : receivingRobot,
+                        dropoff : rendezVousPositions["dropoff"],
+                        passingRobotLocation : rendezVousPositions[passingRobot.name],
+                        receivingRobotLocation : rendezVousPositions[receivingRobot.name],
+                        replacing : matchedItemsToReceive[k]
+                    });
+
+                    passingRobotJobs.unshift(new PassItemJob(matchedItemsToReturn[k]));
+                }
+
+                passingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
+                passingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[passingRobot.name]));
+
+                // if the robot was about to collect/return an object make it face the object again
+                if(receivingRobotJobs[0] instanceof CollectItemJob || receivingRobotJobs[0] instanceof ReturnItemJob)
+                {
+                    receivingRobotJobs.unshift(new FaceObjectJob(receivingRobotJobs[0].item));
+                }
+                // if the robot was about to face an object make it come back to that object again
+                if(receivingRobotJobs[0] instanceof FaceObjectJob)
+                {
+                    receivingRobotJobs.unshift(new GoNextToDestinationJob(receivingRobotJobs[0].object));
+                }
+
+                for(var k = 0; k < matchedItemsToReceive.length; k++)
+                {
+                    //matchedItemsToReceive[k].transferData = 
+                    matchedItemsToReceiveTransferData.push(
+                    {
+                        passingRobot : passingRobot,
+                        receivingRobot : receivingRobot,
+                        dropoff : rendezVousPositions["dropoff"],
+                        passingRobotLocation : rendezVousPositions[passingRobot.name],
+                        receivingRobotLocation : rendezVousPositions[receivingRobot.name],
+                        replaceWith : matchedItemsToReturn[k]
+                    });
+
+                    receivingRobotJobs.unshift(new ReceiveItemJob(matchedItemsToReceive[k]));                      
+                }
+
+                receivingRobotJobs.unshift(new FaceObjectJob(rendezVousPositions["dropoff"])); 
+                receivingRobotJobs.unshift(new GoToDestinationJob(rendezVousPositions[receivingRobot.name]));
+                
+                var coopCost = this.calculateJobsCost(passingRobotJobs, passingRobot);
+                coopCost += this.calculateJobsCost(receivingRobotJobs, receivingRobot);
+
+                var cooperationData = 
+                {
+                    matchedItemsToReturn : matchedItemsToReturn,
+                    matchedItemsToReturnTransferData : matchedItemsToReturnTransferData,
+                    matchedItemsToReceive : matchedItemsToReceive,
+                    matchedItemsToReceiveTransferData : matchedItemsToReceiveTransferData,
+                    passingRobot : passingRobot,
+                    receivingRobot : receivingRobot,
+                    passingRobotJobs : passingRobotJobs,
+                    receivingRobotJobs : receivingRobotJobs,
+                    profit : defectCost - coopCost
+                };
+
+                matches.push(cooperationData);
+                
+
+                /*
+                {
+                    passingRobot.clearJobs();
+                    passingRobot.jobQueue = passingRobotJobs;
+                    receivingRobot.clearJobs();
+                    receivingRobot.jobQueue = receivingRobotJobs;
+                    canReceiveRobots.splice(j, 1);
+
+                    this.raiseEvent(this.ordersUpdated);
+
+                    break;
+                }  
+                */              
+            }
+        }
+    }   
+
+    matches.sort(function(coopDataA, coopDataB)
+    {
+        return coopDataA.profit - coopDataB.profit;
+    });
+
+    if(this.alwaysCooperate == false)
+    {
+        var i;
+        for(i = 0; i < matches.length; i++)
+        {
+            if(matches[i].profit < 0)
+            {
+                break;         
+            }
+        }
+
+        matches.splice(i, matches.length - i);
     }
-    while(matches.length > 0);
+
+    while(matches.length > 0)
+    {
+        var cd = matches[0];
+
+        for(var i = 0; i < cd.matchedItemsToReturn.length; i++)
+        {
+            cd.matchedItemsToReturn[i].transferData = cd.matchedItemsToReturnTransferData[i];
+        }
+
+        for(var i = 0; i < cd.matchedItemsToReceive.length; i++)
+        {
+            cd.matchedItemsToReceive[i].transferData = cd.matchedItemsToReceiveTransferData[i];
+        }
+
+        cd.passingRobot.clearJobs();
+        cd.passingRobot.jobQueue = cd.passingRobotJobs;
+        cd.receivingRobot.clearJobs();
+        cd.receivingRobot.jobQueue = cd.receivingRobotJobs;
+
+        this.raiseEvent(this.ordersUpdated);
+
+        for(var i = 0; i < matches.length; i++)
+        {
+            if(matches[i].passingRobot == cd.passingRobot || matches[i].passingRobot == cd.receivingRobot
+               || matches[i].receivingRobot == cd.passingRobot || matches[i].receivingRobot == cd.receivingRobot)
+            {
+                matches.splice(i, 1);
+                i--;
+            }
+        }
+    }
 }
 
 WarehouseManager.prototype.getSpotsFromJobs = function(jobs)

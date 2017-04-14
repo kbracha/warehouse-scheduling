@@ -2,7 +2,7 @@
 <html>
 <head>
     <!--<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">-->
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="external/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/styles.css">
 
@@ -18,16 +18,16 @@
     <button id="btnRun" class="btn btn-default">Run</button>
     <button id="btnPause" class="btn btn-default">Pause</button>
     <button id="btnOneRound" class="btn btn-default">Single</button>
-    <button id="btnReset" class="btn btn-default">Reset</button>
+    <!-- <button id="btnReset" class="btn btn-default">Reset</button> -->
     Speed:
     <select id="selSpeed" class="form-control" style="width: 100px; display: inline-block;">
         <option>0.125x</option>
         <option>0.25x</option>
         <option>0.5x</option>
-        <option selected>1x</option>
+        <option>1x</option>
         <option>2x</option>
         <option>4x</option>
-        <option>8x</option>
+        <option selected>8x</option>
     </select>
 
     Zoom: 
@@ -40,18 +40,19 @@
     </select>
     <button id="btnCheckOrders" class="btn btn-default">Check Orders</button>
     <button id="btnViewOrders" class="btn btn-default">View Orders</button>
+    <button id="btnViewBasket" class="btn btn-default">Basket</button>
 </div>
 <div class="sidebar">
     <div id="algorithms">
         <div class="title-bar">
             <span class="title-bar-text">Algorithms</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#algorithms-content')">+</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#algorithms-content')">-</button>
             <div class="clearfix"></div>
         </div>
-        <div id="algorithms-content" class="sidebar-section">
+        <div id="algorithms-content" class="sidebar-section" style="display: block">
             VRP algorithm: <br>
-            <label class="radio-inline"><input type="radio" name="radioVRP" value="Savings" checked>Savings</label>
-            <label class="radio-inline"><input type="radio" name="radioVRP" value="Sweep">Sweep</label>
+            <label class="radio-inline"><input type="radio" name="radioVRP" value="Savings">Savings</label>
+            <label class="radio-inline"><input type="radio" name="radioVRP" value="Sweep" checked>Sweep</label>
             <label class="radio-inline"><input type="radio" name="radioVRP" value="Centroid Based">Centroid Based</label><br><br>
             TSP algorithm: <br>
             <label class="radio-inline"><input type="radio" name="radioTSP" value="Nearest Neighbour" checked>Nearest Neighbour</label>
@@ -64,7 +65,7 @@
     <div id="misc">
         <div class="title-bar">
             <span class="title-bar-text">Misc</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#misc-content')">+</button>
+            <button class="title-bar-btn" onclick="collapseSection(this, '#misc-content')">-</button>
             <div class="clearfix"></div>
         </div>
         <div id="misc-content" class="sidebar-section" style="display: block">
@@ -77,8 +78,8 @@
                 <option>Random</option>
                 <option>Popularity based</option>
             </select><br><br>
-            <input type="checkbox" id="autoOrder">Automatically add orders<br><br>
-            Max orders: <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxOrders" value="20" />
+            <input type="checkbox" id="autoOrder" checked>Automatically add orders<br><br>
+            Max orders: <input type="text" class="form-control" style="width: 70px; display: inline-block;" id="maxOrders" value="200" />
             <button class="btn btn-default" id="btnSetMaxOrders">Set</button>
             <br><br>
             Stop after: 
@@ -128,28 +129,31 @@
             <button id="btnItemAddToBasket" class="btn btn-default">Add to basket</button><br><br>
         </div>
     </div>
-    <div id="basket">
-        <div class="title-bar">
-            <span class="title-bar-text">Basket</span>
-            <button class="title-bar-btn" onclick="collapseSection(this, '#basket-content')">+</button>
-            <div class="clearfix"></div>
-        </div>
-        <div id="basket-content" class="sidebar-section">
-            <select class="form-control" id="selBasket"></select>
-            <button id="btnAddBasket" class="btn btn-default">Add items</button><br><br>
-            Items in basket (id #<span id="basketId"></span>):
-            <div id="basketItems"></div>
-            <br>
-            Item count: <span id="basketCount">0</span><br>
-            Total weight: <span id="basketWeight">0</span> oz.<br>
-            Total cost: £<span id="basketCost">0</span><br>            
-            <br>
-            <button id="btnClearBasket" class="btn btn-default">Clear</button>
-            <button id="btnSubmitBasket" class="btn btn-default">Submit</button><br><br>
-        </div>
-    </div>
     <div id="sidebar-dummy"></div>
 </div>
+
+
+<div id="basket" style="text-align: center">
+    <!-- <div class="title-bar">
+        <span class="title-bar-text">Basket</span>
+        <button class="title-bar-btn" onclick="collapseSection(this, '#basket-content')">+</button>
+        <div class="clearfix"></div>
+    </div> -->
+    <!-- <div id="basket-content" class="sidebar-section"> 
+        <select class="form-control" id="selBasket"></select>
+        <button id="btnAddBasket" class="btn btn-default">Add items</button><br><br>-->
+        Items in basket (id #<span id="basketId"></span>):
+        <div id="basketItems"></div>
+        <br>
+        Item count: <span id="basketCount">0</span><br>
+        Total weight: <span id="basketWeight">0</span> oz.<br>
+        <!-- Total cost: £<span id="basketCost">0</span><br> -->         
+        <br>
+        <button id="btnClearBasket" class="btn btn-default">Clear</button>
+        <button id="btnSubmitBasket" class="btn btn-default">Submit</button><br><br>
+    <!-- </div> -->
+</div>
+
 
 <div id="orders">
     <div id="orders-list" class="panel panel-default">
@@ -187,7 +191,7 @@
 <script src="external/js/jquery.min.js"></script>
 <script src="external/js/jquery-ui.min.js"></script>
 <script src="external/js/seedrandom.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/lib/xor4096.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.0/lib/xor4096.min.js"></script>
 
 <script>
 

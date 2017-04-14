@@ -44,9 +44,9 @@
 
 .basket-item-btn
 {
-    border: 1px solid gray;
-    background-color: white;
-    width: 20px;    
+    border: 1px solid gray !important;
+    background-color: white !important;
+    width: 30px !important;    
 }
 
 #robotImg, #itemImg

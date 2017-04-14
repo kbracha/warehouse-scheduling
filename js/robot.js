@@ -221,7 +221,6 @@ Robot.prototype.handlePassItemJob = function(job)
     {
         if(objects[i] == item.transferData.receivingRobot)
         {
-            item.picker = null;
             this.dropItem(item, item.transferData.dropoff.x, item.transferData.dropoff.y);
         
             this.completeJob();
